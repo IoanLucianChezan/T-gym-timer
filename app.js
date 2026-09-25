@@ -362,25 +362,21 @@ function finishSession(reason) {
 
   if (reason === 'cap-reached') cueCapReached(); else cueFinish();
 
-  let title = 'Antrenament finalizat!';
+  let title = randomCelebration();
   let bigTime = formatTime(totalElapsed);
   let detail = '';
 
   if (mode === 'hiit') {
-    title = 'HIIT finalizat! 🎉';
     detail = `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
   } else if (mode === 'amrap') {
-    title = 'AMRAP finalizat! 🎉';
     bigTime = `${session.rounds} runde`;
     detail = `Timp alocat: ${formatTime(meta.duration)}`;
   } else if (mode === 'fortime') {
     const elapsed = reason === 'cap-reached' ? meta.cap : phaseElapsedSeconds();
     bigTime = formatTime(elapsed);
     if (reason === 'cap-reached') {
-      title = 'Time cap atins!';
       detail = `Limită: ${formatTime(meta.cap)}`;
     } else {
-      title = 'Timp final!';
       detail = meta.capped ? `Time cap: ${formatTime(meta.cap)}` : 'Fără limită de timp';
     }
   }
@@ -456,13 +452,50 @@ function renderPhaseChrome() {
 function showTimerOverlay() { $('timerOverlay').hidden = false; }
 function hideTimerOverlay() { $('timerOverlay').hidden = true; }
 
+const CELEBRATION_MESSAGES = [
+  'You rock! 🔥',
+  'Beast mode! 💪',
+  'Crushed it! 🙌',
+  'That\'s a wrap! 🎉',
+  'Legend status! 🏆',
+  'Unstoppable! ⚡',
+  'Nailed it! 🎯',
+  'T GYM energy! 💙',
+];
+
+function randomCelebration() {
+  return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
+}
+
+const CONFETTI_COLORS = ['#00b0f7', '#2563eb', '#7dd3fc', '#1e3a8a', '#eab308', '#ffffff'];
+
+function launchConfetti() {
+  const container = $('confetti');
+  container.innerHTML = '';
+  const count = 60;
+  for (let i = 0; i < count; i++) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+    piece.style.setProperty('--drift', String(Math.round(Math.random() * 160 - 80)));
+    piece.style.animationDuration = `${1.6 + Math.random() * 1.6}s`;
+    piece.style.animationDelay = `${Math.random() * 0.4}s`;
+    if (Math.random() < 0.5) piece.style.borderRadius = '50%';
+    container.appendChild(piece);
+  }
+}
+
+function clearConfetti() { $('confetti').innerHTML = ''; }
+
 function showResult(title, time, detail) {
   $('resultTitle').textContent = title;
   $('resultTime').textContent = time;
   $('resultDetail').textContent = detail;
   $('resultOverlay').hidden = false;
+  launchConfetti();
 }
-function hideResult() { $('resultOverlay').hidden = true; }
+function hideResult() { $('resultOverlay').hidden = true; clearConfetti(); }
 
 /* ---------- config readers ---------- */
 function parseNames(raw) {
