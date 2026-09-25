@@ -31,16 +31,17 @@
     </header>
 
     <nav class="tabs" role="tablist" aria-label="Moduri de antrenament">
-      <button class="tab-btn active" data-mode="hiit" role="tab" aria-selected="true" type="button">Custom interval</button>
+      <button class="tab-btn active" data-mode="hiit" role="tab" aria-selected="true" type="button">Timer</button>
       <button class="tab-btn" data-mode="amrap" role="tab" aria-selected="false" type="button">AMRAP</button>
       <button class="tab-btn" data-mode="fortime" role="tab" aria-selected="false" type="button">For Time</button>
+      <button class="tab-btn" data-mode="custom" role="tab" aria-selected="false" type="button">Custom Interval</button>
     </nav>
 
     <main class="panels">
 
-      <!-- HIIT / Interval custom -->
+      <!-- HIIT / Timer -->
       <section class="panel card active" id="panel-hiit" role="tabpanel">
-        <h2>Custom interval</h2>
+        <h2>Timer</h2>
         <p class="hint">Cronometru configurabil pentru orice exercițiu — seturi, timp de lucru și pauză.</p>
 
         <details class="config-details">
@@ -198,6 +199,30 @@
 
         <button class="start-btn" data-start="fortime" type="button">
           <span aria-hidden="true">▶</span> Începe For Time
+        </button>
+      </section>
+
+      <!-- Custom Interval: list of intervals, each with its own duration -->
+      <section class="panel card" id="panel-custom" role="tabpanel" hidden>
+        <h2>Custom Interval</h2>
+        <p class="hint">Intervale custom pe listă — fiecare interval cu timpul lui propriu, nu doar uniform. Util pentru circuite unde exercițiile au durate diferite.</p>
+
+        <div class="interval-list" id="customList"></div>
+
+        <button type="button" class="add-interval-btn" id="addIntervalBtn">
+          <span aria-hidden="true">+</span> Adaugă interval
+        </button>
+
+        <div class="field toggle-field">
+          <label for="customRadio">
+            <input type="checkbox" id="customRadio" />
+            📻 Pornește radio online în timpul cronometrului
+          </label>
+          <p class="field-hint">(Antenne Workout Hits)</p>
+        </div>
+
+        <button class="start-btn" data-start="custom" type="button">
+          <span aria-hidden="true">▶</span> Începe timer
         </button>
       </section>
 

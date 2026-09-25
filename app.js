@@ -101,7 +101,7 @@ function initTheme() {
 
 /* ---------- background radio (Antenne Workout Hits) ---------- */
 const RADIO_STREAM_URL = 'https://mp3channels.webradio.antenne.de/workout-hits';
-const RADIO_CHECKBOX_ID = { hiit: 'hiitRadio', amrap: 'amrapRadio', fortime: 'ftRadio' };
+const RADIO_CHECKBOX_ID = { hiit: 'hiitRadio', amrap: 'amrapRadio', fortime: 'ftRadio', custom: 'customRadio' };
 let radioAudio = null;
 
 function startRadio() {
@@ -201,6 +201,21 @@ function buildAmrapPhases(cfg) {
   const phases = [];
   if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
   phases.push({ type: 'amrap', label: 'AMRAP', duration: cfg.duration });
+  return phases;
+}
+
+function buildCustomPhases(cfg) {
+  const phases = [];
+  if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
+  cfg.items.forEach((item, i) => {
+    phases.push({
+      type: item.rest ? 'rest' : 'work',
+      label: item.name || (item.rest ? 'Pauză' : 'Exercițiu'),
+      duration: item.duration,
+      set: i + 1,
+      totalSets: cfg.items.length,
+    });
+  });
   return phases;
 }
 
@@ -368,6 +383,8 @@ function finishSession(reason) {
 
   if (mode === 'hiit') {
     detail = `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
+  } else if (mode === 'custom') {
+    detail = `${meta.items.length} intervale · circuit personalizat`;
   } else if (mode === 'amrap') {
     bigTime = `${session.rounds} runde`;
     detail = `Timp alocat: ${formatTime(meta.duration)}`;
@@ -426,20 +443,22 @@ function renderPhaseChrome() {
     : (phase.capped ? 'FOR TIME' : 'CRONOMETRU');
   $('timerTitle').textContent = phase.label;
 
-  if (session.mode === 'hiit' && phase.set) {
+  const isListMode = session.mode === 'hiit' || session.mode === 'custom';
+
+  if (isListMode && phase.set) {
     $('timerSet').textContent = `Set ${phase.set} / ${phase.totalSets}`;
   } else {
     $('timerSet').textContent = '';
   }
 
   const next = session.phases[session.index + 1];
-  if (session.mode === 'hiit' && next) {
+  if (isListMode && next) {
     $('timerNext').textContent = `Urmează: ${next.label}`;
   } else {
     $('timerNext').textContent = '';
   }
 
-  $('skipBtn').hidden = !(session.mode === 'hiit' && next);
+  $('skipBtn').hidden = !(isListMode && next);
   $('finishBtn').hidden = session.mode !== 'fortime';
   $('roundsBox').hidden = session.mode !== 'amrap';
   $('roundsCount').textContent = String(session.rounds);
@@ -525,6 +544,15 @@ function readForTimeConfig() {
   return { capped, cap: Math.max(1, min * 60 + sec) };
 }
 
+function readCustomConfig() {
+  const items = Array.from($('customList').querySelectorAll('.interval-row')).map((row) => ({
+    name: row.querySelector('.interval-name').value.trim(),
+    duration: Math.max(1, parseInt(row.querySelector('.interval-duration').value, 10) || 0),
+    rest: row.querySelector('.interval-rest').checked,
+  }));
+  return { items };
+}
+
 function launch(mode) {
   const radioCheckbox = $(RADIO_CHECKBOX_ID[mode]);
   if (radioCheckbox && radioCheckbox.checked) startRadio(); else stopRadio();
@@ -533,6 +561,11 @@ function launch(mode) {
     const cfg = readHiitConfig();
     lastConfig = { mode, cfg };
     startSession('hiit', buildHiitPhases(cfg), cfg);
+  } else if (mode === 'custom') {
+    const cfg = readCustomConfig();
+    if (!cfg.items.length) return;
+    lastConfig = { mode, cfg };
+    startSession('custom', buildCustomPhases(cfg), cfg);
   } else if (mode === 'amrap') {
     const cfg = readAmrapConfig();
     lastConfig = { mode, cfg };
@@ -567,6 +600,56 @@ function initTabs() {
   $('ftTimeCap').addEventListener('change', (e) => {
     $('ftCapFields').hidden = !e.target.checked;
   });
+}
+
+function addIntervalRow(name, duration, rest) {
+  const row = document.createElement('div');
+  row.className = 'interval-row' + (rest ? ' is-rest' : '');
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.className = 'interval-name';
+  nameInput.placeholder = 'Exercițiu (opțional)';
+  nameInput.value = name || '';
+
+  const durationWrap = document.createElement('div');
+  durationWrap.className = 'interval-duration-wrap';
+  const durationInput = document.createElement('input');
+  durationInput.type = 'number';
+  durationInput.className = 'interval-duration';
+  durationInput.min = '1';
+  durationInput.max = '3600';
+  durationInput.inputMode = 'numeric';
+  durationInput.value = String(duration || 30);
+  const unit = document.createElement('span');
+  unit.className = 'interval-duration-unit';
+  unit.textContent = 's';
+  durationWrap.append(durationInput, unit);
+
+  const restLabel = document.createElement('label');
+  restLabel.className = 'interval-rest-toggle';
+  const restInput = document.createElement('input');
+  restInput.type = 'checkbox';
+  restInput.className = 'interval-rest';
+  restInput.checked = !!rest;
+  restInput.addEventListener('change', () => row.classList.toggle('is-rest', restInput.checked));
+  restLabel.append(restInput, document.createTextNode(' Pauză'));
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'interval-remove';
+  removeBtn.setAttribute('aria-label', 'Șterge interval');
+  removeBtn.textContent = '✕';
+  removeBtn.addEventListener('click', () => row.remove());
+
+  row.append(nameInput, durationWrap, restLabel, removeBtn);
+  $('customList').appendChild(row);
+}
+
+function initCustomList() {
+  addIntervalRow('', 30, false);
+  addIntervalRow('', 30, false);
+  $('addIntervalBtn').addEventListener('click', () => addIntervalRow('', 30, false));
 }
 
 function initSteppers() {
@@ -714,6 +797,7 @@ function registerServiceWorker() {
 function init() {
   initTheme();
   initTabs();
+  initCustomList();
   initSteppers();
   initSettingsModal();
   initTimerControls();

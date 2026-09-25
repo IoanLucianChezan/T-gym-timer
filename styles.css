@@ -392,6 +392,118 @@ fieldset.field legend {
 .config-fields .field:last-child,
 .config-fields .field-row:last-child { margin-bottom: 0; }
 
+/* Custom Interval: editable list of intervals with their own duration */
+.interval-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.interval-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  transition: border-color var(--transition);
+}
+.interval-row.is-rest { border-left-color: var(--warning); }
+
+.interval-name {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.interval-duration-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.interval-duration {
+  width: 48px;
+  padding: 9px 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.interval-duration::-webkit-inner-spin-button,
+.interval-duration::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.interval-duration-unit { color: var(--text-muted); font-size: 13px; }
+
+.interval-rest-toggle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.interval-rest-toggle input { width: 16px; height: 16px; }
+
+.interval-remove {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition);
+}
+.interval-remove:hover { background: var(--danger-soft); color: var(--danger); }
+
+.add-interval-btn {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.add-interval-btn:hover { background: var(--accent-soft); border-color: var(--primary); }
+
+@media (max-width: 480px) {
+  .interval-row { flex-wrap: wrap; }
+  .interval-name { flex-basis: 100%; }
+}
+
 /* Start button */
 .start-btn {
   width: 100%;
