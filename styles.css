@@ -78,7 +78,6 @@ body { -webkit-tap-highlight-color: transparent; }
   align-items: flex-start;
   gap: 16px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
 .brand-logo {
@@ -109,24 +108,8 @@ body { -webkit-tap-highlight-color: transparent; }
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-shrink: 0;
 }
-
-.pill-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: background var(--transition), border-color var(--transition);
-}
-.pill-btn:hover { border-color: var(--primary); }
 
 .icon-toggle {
   width: 38px;
@@ -172,23 +155,6 @@ body { -webkit-tap-highlight-color: transparent; }
 .tab-btn.active {
   background: var(--accent-soft);
   color: var(--accent);
-}
-
-/* Four tabs no longer fit an equal-width single row on narrow screens
-   without squeezing or cropping "Custom Interval" — switch to a 2x2
-   grid so every tab stays fully visible without horizontal scrolling. */
-@media (max-width: 480px) {
-  .tabs {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    overflow-x: visible;
-  }
-  .tab-btn {
-    flex: unset;
-    padding: 10px 8px;
-    font-size: 13px;
-    text-align: center;
-  }
 }
 
 /* Cards / Panels */
@@ -305,63 +271,6 @@ textarea { resize: vertical; }
   cursor: pointer;
 }
 .toggle-field input[type="checkbox"] { width: 18px; height: 18px; }
-
-.switch-field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.switch-field label { margin: 0; font-weight: 600; }
-.switch-field input[type="checkbox"] { width: 20px; height: 20px; }
-
-.install-row { margin-bottom: 22px; }
-.install-btn {
-  width: 100%;
-  border: none;
-  border-radius: 999px;
-  padding: 13px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--primary-contrast);
-  background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.install-btn:active { transform: scale(0.98); }
-
-fieldset.field {
-  border: none;
-  padding: 0;
-  margin: 0 0 18px;
-}
-fieldset.field legend {
-  padding: 0;
-  margin-bottom: 8px;
-}
-
-.radio-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.radio-opt {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.radio-opt input { accent-color: var(--primary); }
 
 /* Collapsible "Configurare" section (default minimized) */
 .config-details {
@@ -604,14 +513,14 @@ fieldset.field legend {
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -762,11 +671,11 @@ fieldset.field legend {
 .rounds-plus:active { transform: scale(0.98); }
 
 .timer-logo {
-  display: block;
-  height: 22px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  height: 24px;
   width: auto;
-  margin: 18px auto 0;
-  opacity: .85;
 }
 
 
@@ -867,6 +776,11 @@ fieldset.field legend {
   #timerOverlay .close-x {
     top: max(14px, env(safe-area-inset-top));
     right: max(14px, env(safe-area-inset-right));
+  }
+
+  #timerOverlay .timer-logo {
+    top: max(20px, env(safe-area-inset-top));
+    left: max(20px, env(safe-area-inset-left));
   }
 
   #timerOverlay .ring-wrap {

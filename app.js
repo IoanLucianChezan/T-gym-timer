@@ -57,23 +57,11 @@ function applyPhaseColor(phase, frac) {
   $('ringFg').style.stroke = color;
 }
 
-/* ---------- settings & theme persistence ---------- */
-const SETTINGS_KEY = 'wt.settings';
+/* ---------- fixed settings & theme persistence ---------- */
 const THEME_KEY = 'wt.theme';
 
-function loadSettings() {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (raw) return { prep: 5, sound: true, vibrate: true, wake: true, ...JSON.parse(raw) };
-  } catch (e) { /* ignore corrupt storage */ }
-  return { prep: 5, sound: true, vibrate: true, wake: true };
-}
-
-function saveSettings(s) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-}
-
-let settings = loadSettings();
+// No settings UI: no prep countdown, audio/vibration/wake-lock always on.
+const settings = { prep: 0, sound: true, vibrate: true, wake: true };
 
 /* ---------- last-used config persistence (per mode) ---------- */
 const CONFIGS_KEY = 'wt.configs';
@@ -778,32 +766,6 @@ function initSteppers() {
   });
 }
 
-function initSettingsModal() {
-  const modal = $('settingsModal');
-  $('settingsBtn').addEventListener('click', () => {
-    document.querySelectorAll('#prepRadioGroup input[name="prep"]').forEach((r) => {
-      r.checked = String(settings.prep) === r.value;
-    });
-    $('soundToggle').checked = settings.sound;
-    $('vibrateToggle').checked = settings.vibrate;
-    $('wakeToggle').checked = settings.wake;
-    updateInstallRow();
-    modal.hidden = false;
-  });
-  $('settingsClose').addEventListener('click', () => { modal.hidden = true; });
-  modal.addEventListener('click', (e) => { if (e.target === modal) modal.hidden = true; });
-
-  document.querySelectorAll('#prepRadioGroup input[name="prep"]').forEach((r) => {
-    r.addEventListener('change', () => {
-      settings.prep = parseInt(r.value, 10);
-      saveSettings(settings);
-    });
-  });
-  $('soundToggle').addEventListener('change', (e) => { settings.sound = e.target.checked; saveSettings(settings); });
-  $('vibrateToggle').addEventListener('change', (e) => { settings.vibrate = e.target.checked; saveSettings(settings); });
-  $('wakeToggle').addEventListener('change', (e) => { settings.wake = e.target.checked; saveSettings(settings); });
-}
-
 function initTimerControls() {
   $('pauseBtn').addEventListener('click', () => {
     if (!session) return;
@@ -822,56 +784,6 @@ function initResultControls() {
     hideResult();
     if (lastConfig) launch(lastConfig.mode);
   });
-}
-
-/* ---------- custom install prompt ---------- */
-let deferredInstallPrompt = null;
-
-function isStandalone() {
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-
-function isIosDevice() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent)
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
-
-function updateInstallRow() {
-  const row = $('installRow');
-  const btn = $('installBtn');
-  const hint = $('installHint');
-  if (isStandalone()) { row.hidden = true; return; }
-  if (deferredInstallPrompt) {
-    row.hidden = false;
-    btn.hidden = false;
-    hint.hidden = true;
-  } else if (isIosDevice()) {
-    row.hidden = false;
-    btn.hidden = true;
-    hint.hidden = false;
-  } else {
-    row.hidden = true;
-  }
-}
-
-function initInstallPrompt() {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredInstallPrompt = e;
-    updateInstallRow();
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    updateInstallRow();
-  });
-  $('installBtn').addEventListener('click', async () => {
-    if (!deferredInstallPrompt) return;
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    updateInstallRow();
-  });
-  updateInstallRow();
 }
 
 function registerServiceWorker() {
@@ -925,10 +837,8 @@ function init() {
   initCustomList();
   initSteppers();
   restoreConfigs();
-  initSettingsModal();
   initTimerControls();
   initResultControls();
-  initInstallPrompt();
   registerServiceWorker();
 }
 

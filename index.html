@@ -21,9 +21,6 @@
         <p class="subtitle">Train insane or remain the same. T gym energy!</p>
       </div>
       <div class="header-actions">
-        <button id="settingsBtn" class="pill-btn" type="button">
-          <span aria-hidden="true">⚙️</span> Setări
-        </button>
         <button id="themeToggle" class="icon-toggle" type="button" aria-label="Comută tema">
           <span id="themeIcon" aria-hidden="true">🌙</span>
         </button>
@@ -34,7 +31,7 @@
       <button class="tab-btn active" data-mode="hiit" role="tab" aria-selected="true" type="button">Timer</button>
       <button class="tab-btn" data-mode="amrap" role="tab" aria-selected="false" type="button">AMRAP</button>
       <button class="tab-btn" data-mode="fortime" role="tab" aria-selected="false" type="button">For Time</button>
-      <button class="tab-btn" data-mode="custom" role="tab" aria-selected="false" type="button">Custom Interval</button>
+      <button class="tab-btn" data-mode="custom" role="tab" aria-selected="false" type="button">Custom</button>
     </nav>
 
     <main class="panels">
@@ -243,49 +240,10 @@
     </main>
   </div>
 
-  <!-- Settings modal -->
-  <div class="modal-backdrop" id="settingsModal" hidden>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-      <button class="close-x" id="settingsClose" type="button" aria-label="Închide">✕</button>
-      <h2 id="settingsTitle">Setări</h2>
-
-      <div class="field install-row" id="installRow" hidden>
-        <button type="button" class="install-btn" id="installBtn" hidden>
-          <span aria-hidden="true">⬇️</span> Instalează aplicația
-        </button>
-        <p class="field-hint" id="installHint" hidden>Pe iPhone/iPad: apasă Distribuie (din Safari), apoi „Adaugă pe ecranul principal”.</p>
-      </div>
-
-      <fieldset class="field">
-        <legend>Numărătoare de pregătire</legend>
-        <div class="radio-group" id="prepRadioGroup">
-          <label class="radio-opt"><input type="radio" name="prep" value="0" /> Fără</label>
-          <label class="radio-opt"><input type="radio" name="prep" value="3" /> 3 secunde</label>
-          <label class="radio-opt"><input type="radio" name="prep" value="5" checked /> 5 secunde</label>
-          <label class="radio-opt"><input type="radio" name="prep" value="10" /> 10 secunde</label>
-        </div>
-      </fieldset>
-
-      <div class="field switch-field">
-        <label for="soundToggle">Semnale audio</label>
-        <input type="checkbox" id="soundToggle" checked />
-      </div>
-
-      <div class="field switch-field">
-        <label for="vibrateToggle">Vibrații</label>
-        <input type="checkbox" id="vibrateToggle" checked />
-      </div>
-
-      <div class="field switch-field">
-        <label for="wakeToggle">Ecran aprins în timpul antrenamentului</label>
-        <input type="checkbox" id="wakeToggle" checked />
-      </div>
-    </div>
-  </div>
-
   <!-- Timer overlay -->
   <div class="modal-backdrop" id="timerOverlay" hidden>
     <div class="modal-card timer-card">
+      <img class="timer-logo" src="tgym-logo-landscape.png" alt="T Gym" />
       <button class="close-x" id="timerClose" type="button" aria-label="Închide">✕</button>
 
       <div class="ring-wrap">
@@ -319,8 +277,6 @@
         <button class="control-btn" id="skipBtn" type="button" hidden><span aria-hidden="true">⏭</span> Următorul</button>
         <button class="control-btn primary" id="finishBtn" type="button" hidden><span aria-hidden="true">🏁</span> Am terminat</button>
       </div>
-
-      <img class="timer-logo" src="tgym-logo-landscape.png" alt="T Gym" />
     </div>
   </div>
 
