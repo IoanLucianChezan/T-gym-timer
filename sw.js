@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-timer-v9';
+const CACHE_NAME = 'workout-timer-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -32,18 +32,17 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (new URL(event.request.url).origin !== self.location.origin) return; // leave cross-origin streams (radio) to the network
+  // Network-first: always serve the latest deploy when online, and only
+  // fall back to the cache when the network is unavailable (offline).
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const network = fetch(event.request)
-        .then((response) => {
-          if (response && response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
