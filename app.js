@@ -58,6 +58,23 @@ function initTheme() {
   });
 }
 
+/* ---------- background radio (Antenne Workout Hits) ---------- */
+const RADIO_STREAM_URL = 'https://mp3channels.webradio.antenne.de/workout-hits';
+const RADIO_CHECKBOX_ID = { hiit: 'hiitRadio', amrap: 'amrapRadio', fortime: 'ftRadio' };
+let radioAudio = null;
+
+function startRadio() {
+  if (!radioAudio) {
+    radioAudio = new Audio(RADIO_STREAM_URL);
+    radioAudio.preload = 'none';
+  }
+  radioAudio.play().catch(() => { /* autoplay blocked or stream unavailable */ });
+}
+
+function stopRadio() {
+  if (radioAudio) { radioAudio.pause(); }
+}
+
 /* ---------- audio cues ---------- */
 let audioCtx = null;
 function ensureAudio() {
@@ -269,6 +286,7 @@ function abortSession() {
   tickHandle = null;
   session = null;
   releaseWakeLock();
+  stopRadio();
   hideTimerOverlay();
 }
 
@@ -278,6 +296,7 @@ function finishSession(reason) {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
   releaseWakeLock();
+  stopRadio();
 
   const totalElapsed = (Date.now() - session.sessionStartTs) / 1000;
   const mode = session.mode;
@@ -412,6 +431,9 @@ function readForTimeConfig() {
 }
 
 function launch(mode) {
+  const radioCheckbox = $(RADIO_CHECKBOX_ID[mode]);
+  if (radioCheckbox && radioCheckbox.checked) startRadio(); else stopRadio();
+
   if (mode === 'hiit') {
     const cfg = readHiitConfig();
     lastConfig = { mode, cfg };

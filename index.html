@@ -16,7 +16,7 @@
 
     <header class="header">
       <div class="brand">
-        <h1>Workout Timer</h1>
+        <h1>Workout Timer <span class="brand-credit">@Fit by Chezan</span></h1>
         <p class="subtitle">Antrenează-te cronometrat. Fără scuze, doar reps.</p>
       </div>
       <div class="header-actions">
@@ -68,6 +68,14 @@
           <p class="field-hint">Dacă pui mai puține nume decât seturi, se repetă în ordine. Fără nume → afișează „Exercițiu”.</p>
         </div>
 
+        <div class="field toggle-field">
+          <label for="hiitRadio">
+            <input type="checkbox" id="hiitRadio" />
+            📻 Pornește radio online în timpul cronometrului
+          </label>
+          <p class="field-hint">(Antenne Workout Hits)</p>
+        </div>
+
         <button class="start-btn" data-start="hiit" type="button">
           <span aria-hidden="true">▶</span> Începe HIIT
         </button>
@@ -87,6 +95,14 @@
             <label for="amrapSec">Secunde</label>
             <input type="number" id="amrapSec" min="0" max="59" value="0" inputmode="numeric" />
           </div>
+        </div>
+
+        <div class="field toggle-field">
+          <label for="amrapRadio">
+            <input type="checkbox" id="amrapRadio" />
+            📻 Pornește radio online în timpul cronometrului
+          </label>
+          <p class="field-hint">(Antenne Workout Hits)</p>
         </div>
 
         <button class="start-btn" data-start="amrap" type="button">
@@ -116,6 +132,14 @@
             <label for="ftCapSec">Secunde</label>
             <input type="number" id="ftCapSec" min="0" max="59" value="0" inputmode="numeric" />
           </div>
+        </div>
+
+        <div class="field toggle-field">
+          <label for="ftRadio">
+            <input type="checkbox" id="ftRadio" />
+            📻 Pornește radio online în timpul cronometrului
+          </label>
+          <p class="field-hint">(Antenne Workout Hits)</p>
         </div>
 
         <button class="start-btn" data-start="fortime" type="button">
@@ -184,6 +208,8 @@
         <button class="control-btn" id="skipBtn" type="button" hidden><span aria-hidden="true">⏭</span> Următorul</button>
         <button class="control-btn primary" id="finishBtn" type="button" hidden><span aria-hidden="true">🏁</span> Am terminat</button>
       </div>
+
+      <p class="timer-credit">@Fit by Chezan</p>
     </div>
   </div>
 

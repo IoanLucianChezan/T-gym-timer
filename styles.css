@@ -80,6 +80,14 @@ body { -webkit-tap-highlight-color: transparent; }
   color: var(--primary);
 }
 
+.brand-credit {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
 .subtitle {
   margin: 4px 0 0;
   color: var(--text-muted);
@@ -406,6 +414,15 @@ fieldset.field legend {
   flex-wrap: wrap;
 }
 
+.timer-credit {
+  margin: 18px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  color: var(--primary);
+  transition: color 300ms ease;
+}
+
 .control-btn {
   display: inline-flex;
   align-items: center;
@@ -451,6 +468,14 @@ fieldset.field legend {
 .phase-prep .ring-phase,
 .phase-warmup .ring-phase { color: var(--accent); }
 .phase-urgent .ring-phase { color: var(--danger); }
+
+.phase-work .timer-credit,
+.phase-amrap .timer-credit { color: var(--primary); }
+.phase-rest .timer-credit { color: var(--warning); }
+.phase-prep .timer-credit,
+.phase-warmup .timer-credit,
+.phase-fortime .timer-credit { color: var(--accent); }
+.phase-urgent .timer-credit { color: var(--danger); }
 
 @media (max-width: 420px) {
   .brand h1 { font-size: 24px; }
