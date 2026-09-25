@@ -207,11 +207,25 @@
         <h2>Custom Interval</h2>
         <p class="hint">Intervale custom pe listă — fiecare interval cu timpul lui propriu, nu doar uniform. Util pentru circuite unde exercițiile au durate diferite.</p>
 
+        <div class="field">
+          <label for="customRounds">Runde</label>
+          <div class="stepper" data-step="1">
+            <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+            <input type="number" id="customRounds" min="1" max="20" value="1" inputmode="numeric" />
+            <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+          </div>
+          <p class="field-hint">De câte ori se repetă toată lista de intervale.</p>
+        </div>
+
         <div class="interval-list" id="customList"></div>
+
+        <p class="interval-empty-warning" id="customEmptyWarning" hidden>⚠️ Adaugă cel puțin un interval ca să poți porni.</p>
 
         <button type="button" class="add-interval-btn" id="addIntervalBtn">
           <span aria-hidden="true">+</span> Adaugă interval
         </button>
+
+        <p class="interval-total" id="customTotal">Timp total: ≈ 00:00</p>
 
         <div class="field toggle-field">
           <label for="customRadio">

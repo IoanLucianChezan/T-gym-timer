@@ -75,6 +75,23 @@ function saveSettings(s) {
 
 let settings = loadSettings();
 
+/* ---------- last-used config persistence (per mode) ---------- */
+const CONFIGS_KEY = 'wt.configs';
+
+function loadConfigs() {
+  try {
+    const raw = localStorage.getItem(CONFIGS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* ignore corrupt storage */ }
+  return {};
+}
+
+function saveConfig(mode, cfg) {
+  const all = loadConfigs();
+  all[mode] = cfg;
+  try { localStorage.setItem(CONFIGS_KEY, JSON.stringify(all)); } catch (e) { /* storage unavailable */ }
+}
+
 function applyTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -207,15 +224,21 @@ function buildAmrapPhases(cfg) {
 function buildCustomPhases(cfg) {
   const phases = [];
   if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
-  cfg.items.forEach((item, i) => {
-    phases.push({
-      type: item.rest ? 'rest' : 'work',
-      label: item.name || (item.rest ? 'Pauză' : 'Exercițiu'),
-      duration: item.duration,
-      set: i + 1,
-      totalSets: cfg.items.length,
+  const rounds = Math.max(1, cfg.rounds || 1);
+  const totalSets = cfg.items.length * rounds;
+  let count = 0;
+  for (let r = 0; r < rounds; r++) {
+    cfg.items.forEach((item) => {
+      count += 1;
+      phases.push({
+        type: item.rest ? 'rest' : 'work',
+        label: item.name || (item.rest ? 'Pauză' : 'Exercițiu'),
+        duration: item.duration,
+        set: count,
+        totalSets,
+      });
     });
-  });
+  }
   return phases;
 }
 
@@ -384,7 +407,9 @@ function finishSession(reason) {
   if (mode === 'hiit') {
     detail = `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
   } else if (mode === 'custom') {
-    detail = `${meta.items.length} intervale · circuit personalizat`;
+    detail = meta.rounds > 1
+      ? `${meta.items.length} intervale × ${meta.rounds} runde`
+      : `${meta.items.length} intervale · circuit personalizat`;
   } else if (mode === 'amrap') {
     bigTime = `${session.rounds} runde`;
     detail = `Timp alocat: ${formatTime(meta.duration)}`;
@@ -550,7 +575,8 @@ function readCustomConfig() {
     duration: Math.max(1, parseInt(row.querySelector('.interval-duration').value, 10) || 0),
     rest: row.querySelector('.interval-rest').checked,
   }));
-  return { items };
+  const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
+  return { items, rounds };
 }
 
 function launch(mode) {
@@ -560,19 +586,23 @@ function launch(mode) {
   if (mode === 'hiit') {
     const cfg = readHiitConfig();
     lastConfig = { mode, cfg };
+    saveConfig(mode, cfg);
     startSession('hiit', buildHiitPhases(cfg), cfg);
   } else if (mode === 'custom') {
     const cfg = readCustomConfig();
     if (!cfg.items.length) return;
     lastConfig = { mode, cfg };
+    saveConfig(mode, cfg);
     startSession('custom', buildCustomPhases(cfg), cfg);
   } else if (mode === 'amrap') {
     const cfg = readAmrapConfig();
     lastConfig = { mode, cfg };
+    saveConfig(mode, cfg);
     startSession('amrap', buildAmrapPhases(cfg), cfg);
   } else if (mode === 'fortime') {
     const cfg = readForTimeConfig();
     lastConfig = { mode, cfg };
+    saveConfig(mode, cfg);
     startSession('fortime', buildForTimePhases(cfg), cfg);
   }
 }
@@ -602,6 +632,26 @@ function initTabs() {
   });
 }
 
+function formatIntervalTotal() {
+  const rows = Array.from($('customList').querySelectorAll('.interval-row'));
+  const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
+  const sum = rows.reduce((acc, row) => acc + (Math.max(0, parseInt(row.querySelector('.interval-duration').value, 10) || 0)), 0);
+  const total = sum * rounds + (settings.prep > 0 ? settings.prep : 0);
+  return formatTime(total);
+}
+
+function updateCustomListState() {
+  const rows = Array.from($('customList').querySelectorAll('.interval-row'));
+  $('customEmptyWarning').hidden = rows.length > 0;
+  const startBtn = document.querySelector('[data-start="custom"]');
+  if (startBtn) startBtn.disabled = rows.length === 0;
+  rows.forEach((row, i) => {
+    row.querySelector('.interval-move[data-dir="-1"]').disabled = i === 0;
+    row.querySelector('.interval-move[data-dir="1"]').disabled = i === rows.length - 1;
+  });
+  $('customTotal').textContent = `Timp total: ≈ ${formatIntervalTotal()}`;
+}
+
 function addIntervalRow(name, duration, rest) {
   const row = document.createElement('div');
   row.className = 'interval-row' + (rest ? ' is-rest' : '');
@@ -621,6 +671,7 @@ function addIntervalRow(name, duration, rest) {
   durationInput.max = '3600';
   durationInput.inputMode = 'numeric';
   durationInput.value = String(duration || 30);
+  durationInput.addEventListener('input', updateCustomListState);
   const unit = document.createElement('span');
   unit.className = 'interval-duration-unit';
   unit.textContent = 's';
@@ -635,21 +686,58 @@ function addIntervalRow(name, duration, rest) {
   restInput.addEventListener('change', () => row.classList.toggle('is-rest', restInput.checked));
   restLabel.append(restInput, document.createTextNode(' Pauză'));
 
+  const actions = document.createElement('div');
+  actions.className = 'interval-row-actions';
+
+  const moveUpBtn = document.createElement('button');
+  moveUpBtn.type = 'button';
+  moveUpBtn.className = 'interval-move';
+  moveUpBtn.dataset.dir = '-1';
+  moveUpBtn.setAttribute('aria-label', 'Mută mai sus');
+  moveUpBtn.textContent = '↑';
+  moveUpBtn.addEventListener('click', () => {
+    if (row.previousElementSibling) {
+      $('customList').insertBefore(row, row.previousElementSibling);
+      updateCustomListState();
+    }
+  });
+
+  const moveDownBtn = document.createElement('button');
+  moveDownBtn.type = 'button';
+  moveDownBtn.className = 'interval-move';
+  moveDownBtn.dataset.dir = '1';
+  moveDownBtn.setAttribute('aria-label', 'Mută mai jos');
+  moveDownBtn.textContent = '↓';
+  moveDownBtn.addEventListener('click', () => {
+    if (row.nextElementSibling) {
+      $('customList').insertBefore(row.nextElementSibling, row);
+      updateCustomListState();
+    }
+  });
+
   const removeBtn = document.createElement('button');
   removeBtn.type = 'button';
   removeBtn.className = 'interval-remove';
   removeBtn.setAttribute('aria-label', 'Șterge interval');
   removeBtn.textContent = '✕';
-  removeBtn.addEventListener('click', () => row.remove());
+  removeBtn.addEventListener('click', () => { row.remove(); updateCustomListState(); });
 
-  row.append(nameInput, durationWrap, restLabel, removeBtn);
+  actions.append(moveUpBtn, moveDownBtn, removeBtn);
+  row.append(nameInput, durationWrap, restLabel, actions);
   $('customList').appendChild(row);
+  updateCustomListState();
+}
+
+function populateCustomList(items) {
+  $('customList').innerHTML = '';
+  (items && items.length ? items : [{ name: '', duration: 30, rest: false }, { name: '', duration: 30, rest: false }])
+    .forEach((item) => addIntervalRow(item.name, item.duration, item.rest));
 }
 
 function initCustomList() {
-  addIntervalRow('', 30, false);
-  addIntervalRow('', 30, false);
+  populateCustomList(null);
   $('addIntervalBtn').addEventListener('click', () => addIntervalRow('', 30, false));
+  $('customRounds').addEventListener('input', updateCustomListState);
 }
 
 function initSteppers() {
@@ -794,11 +882,49 @@ function registerServiceWorker() {
   }
 }
 
+function restoreConfigs() {
+  const saved = loadConfigs();
+
+  if (saved.hiit) {
+    const c = saved.hiit;
+    if (c.sets != null) $('hiitSets').value = String(c.sets);
+    if (c.work != null) $('hiitWork').value = String(c.work);
+    if (c.rest != null) $('hiitRest').value = String(c.rest);
+    if (c.warmup != null) $('hiitWarmup').value = String(c.warmup);
+    if (c.names) $('hiitNames').value = c.names.join('\n');
+    ['hiitSets', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+  }
+
+  if (saved.amrap) {
+    const totalSec = Math.max(0, saved.amrap.duration || 0);
+    $('amrapMin').value = String(Math.floor(totalSec / 60));
+    $('amrapSec').value = String(totalSec % 60);
+    ['amrapMin', 'amrapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+  }
+
+  if (saved.fortime) {
+    $('ftTimeCap').checked = !!saved.fortime.capped;
+    $('ftCapFields').hidden = !saved.fortime.capped;
+    const capSec = Math.max(0, saved.fortime.cap || 0);
+    $('ftCapMin').value = String(Math.floor(capSec / 60));
+    $('ftCapSec').value = String(capSec % 60);
+    ['ftCapMin', 'ftCapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+  }
+
+  if (saved.custom && saved.custom.items && saved.custom.items.length) {
+    populateCustomList(saved.custom.items);
+    $('customRounds').value = String(saved.custom.rounds || 1);
+    $('customRounds').dispatchEvent(new Event('change', { bubbles: true }));
+    updateCustomListState();
+  }
+}
+
 function init() {
   initTheme();
   initTabs();
   initCustomList();
   initSteppers();
+  restoreConfigs();
   initSettingsModal();
   initTimerControls();
   initResultControls();
