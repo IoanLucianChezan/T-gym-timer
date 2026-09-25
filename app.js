@@ -55,8 +55,6 @@ function applyPhaseColor(phase, frac) {
     color = lerpColor(cssVar(pair[0]), cssVar(pair[1]), frac);
   }
   $('ringFg').style.stroke = color;
-  const credit = document.querySelector('.timer-credit');
-  if (credit) credit.style.color = color;
 }
 
 /* ---------- settings & theme persistence ---------- */

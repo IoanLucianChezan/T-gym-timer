@@ -88,15 +88,11 @@ body { -webkit-tap-highlight-color: transparent; }
   margin: 0;
   font-size: 28px;
   font-weight: 800;
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
   color: var(--primary);
-}
-
-.brand-credit {
-  display: block;
-  margin: 2px 0 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--primary);
+  -webkit-text-fill-color: transparent;
 }
 
 .subtitle {
@@ -604,16 +600,9 @@ fieldset.field legend {
   height: 22px;
   width: auto;
   margin: 18px auto 0;
+  opacity: .85;
 }
 
-.timer-credit {
-  margin: 4px 0 0;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .3px;
-  color: var(--primary);
-  transition: color 250ms linear;
-}
 
 .control-btn {
   display: inline-flex;
@@ -647,9 +636,9 @@ fieldset.field legend {
 }
 .result-detail { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
 
-/* Phase label color (ring-fg stroke and timer-credit color are driven
-   continuously by JS — they fade from a start color to an end color as
-   each phase progresses, see updateRingCountDown/updateRingCountUp) */
+/* Phase label color (ring-fg stroke is driven continuously by JS — it
+   fades from a start color to an end color as each phase progresses,
+   see updateRingCountDown/updateRingCountUp) */
 .phase-rest .ring-phase { color: var(--warning); }
 .phase-prep .ring-phase,
 .phase-warmup .ring-phase { color: var(--accent); }
@@ -722,11 +711,6 @@ fieldset.field legend {
   #timerOverlay .control-btn {
     font-size: 18px;
     padding: 15px 26px;
-  }
-
-  #timerOverlay .timer-credit {
-    font-size: 17px;
-    margin-top: 26px;
   }
 
   #timerOverlay .rounds-box {
