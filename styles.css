@@ -484,6 +484,7 @@ fieldset.field legend {
     align-items: center;
     justify-content: center;
     padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+    overflow-y: auto;
   }
 
   #timerOverlay .close-x {
@@ -492,12 +493,41 @@ fieldset.field legend {
   }
 
   #timerOverlay .ring-wrap {
-    width: min(84vw, 340px);
-    height: min(84vw, 340px);
-    margin: 8px auto 28px;
+    width: min(90vw, 380px);
+    height: min(90vw, 380px);
+    margin: 8px auto 32px;
   }
 
   #timerOverlay .ring-time {
-    font-size: clamp(48px, 17vw, 72px);
+    font-size: clamp(48px, 18vw, 78px);
+  }
+
+  #timerOverlay .ring-phase {
+    font-size: 17px;
+    margin-top: 8px;
+  }
+
+  #timerOverlay .timer-title {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  #timerOverlay .timer-meta {
+    font-size: 19px;
+  }
+
+  #timerOverlay .timer-next {
+    font-size: 17px;
+    margin-bottom: 28px;
+  }
+
+  #timerOverlay .control-btn {
+    font-size: 18px;
+    padding: 15px 26px;
+  }
+
+  #timerOverlay .timer-credit {
+    font-size: 17px;
+    margin-top: 26px;
   }
 }
