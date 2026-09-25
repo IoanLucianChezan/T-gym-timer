@@ -11,6 +11,8 @@
   --primary-rgb: 37, 99, 235;
   --primary-light: #7dd3fc;
   --primary-dark: #1e3a8a;
+  --btn-grad-start: #1d4ed8;
+  --btn-grad-end: #38bdf8;
   --accent: #0284c7;
   --accent-soft: #e0f2fe;
   --warning: #eab308;
@@ -37,6 +39,8 @@
   --primary-rgb: 59, 130, 246;
   --primary-light: #7dd3fc;
   --primary-dark: #1e40af;
+  --btn-grad-start: #3b82f6;
+  --btn-grad-end: #38bdf8;
   --accent: #38bdf8;
   --accent-soft: rgba(56, 189, 248, .16);
   --warning: #eab308;
@@ -303,7 +307,7 @@ textarea { resize: vertical; }
   font-size: 15px;
   font-weight: 700;
   color: var(--primary-contrast);
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -397,7 +401,7 @@ fieldset.field legend {
   font-size: 16px;
   font-weight: 700;
   color: var(--primary-contrast);
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
   cursor: pointer;
   box-shadow: var(--shadow-md);
   display: flex;
@@ -589,7 +593,7 @@ fieldset.field legend {
   flex: 1;
   padding: 12px;
   font-size: 15px;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
   color: var(--primary-contrast);
   box-shadow: var(--shadow-sm);
 }
@@ -619,7 +623,7 @@ fieldset.field legend {
 }
 
 .control-btn.primary {
-  background: linear-gradient(90deg, var(--primary), var(--accent));
+  background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
   color: var(--primary-contrast);
   border: none;
 }
