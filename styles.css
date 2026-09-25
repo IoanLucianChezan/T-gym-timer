@@ -92,10 +92,10 @@ body { -webkit-tap-highlight-color: transparent; }
   margin: 0;
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, #4dd6ff, #00b0f7);
+  background: linear-gradient(180deg, #03a6d1, #014ca5);
   -webkit-background-clip: text;
   background-clip: text;
-  color: #00b0f7;
+  color: #014ca5;
   -webkit-text-fill-color: transparent;
 }
 
