@@ -641,6 +641,12 @@ fieldset.field legend {
   .brand h1 { font-size: 24px; }
 }
 
+/* Stack Minute/Secunde steppers on mobile — side by side they're too
+   narrow to fit two-digit values (e.g. "10") next to the +/- buttons. */
+@media (max-width: 480px) {
+  .field-row { flex-direction: column; gap: 18px; }
+}
+
 /* Full-screen timer on mobile: the running cronometru takes over the
    whole viewport instead of sitting in a small centered card, with a
    bigger ring and bigger time readout. */
