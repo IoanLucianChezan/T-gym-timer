@@ -16,6 +16,49 @@ function formatTime(totalSeconds) {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
+/* ---------- phase color gradient (ring + credit fade from a start color to an end color as a phase progresses) ---------- */
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function hexToRgb(hex) {
+  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+  if (!m) return [22, 163, 74]; // fallback: primary green
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+}
+
+function lerpColor(hex1, hex2, t) {
+  const a = hexToRgb(hex1);
+  const b = hexToRgb(hex2);
+  const clamped = Math.max(0, Math.min(1, t));
+  const r = Math.round(a[0] + (b[0] - a[0]) * clamped);
+  const g = Math.round(a[1] + (b[1] - a[1]) * clamped);
+  const bl = Math.round(a[2] + (b[2] - a[2]) * clamped);
+  return `rgb(${r}, ${g}, ${bl})`;
+}
+
+const PHASE_COLOR_PAIRS = {
+  prep: ['--accent', '--primary'],
+  warmup: ['--accent', '--warning'],
+  work: ['--primary', '--danger'],
+  rest: ['--warning', '--primary'],
+  amrap: ['--primary', '--danger'],
+  fortime: ['--accent', '--danger'],
+};
+
+function applyPhaseColor(phase, frac) {
+  let color;
+  if (phase.type === 'fortime' && !phase.capped) {
+    color = cssVar('--accent');
+  } else {
+    const pair = PHASE_COLOR_PAIRS[phase.type] || ['--primary', '--primary'];
+    color = lerpColor(cssVar(pair[0]), cssVar(pair[1]), frac);
+  }
+  $('ringFg').style.stroke = color;
+  const credit = document.querySelector('.timer-credit');
+  if (credit) credit.style.color = color;
+}
+
 /* ---------- settings & theme persistence ---------- */
 const SETTINGS_KEY = 'wt.settings';
 const THEME_KEY = 'wt.theme';
@@ -345,20 +388,23 @@ function updateRingCountDown(remaining, phase) {
   $('ringTime').textContent = formatTime(remaining);
   const urgent = remaining <= 3 && remaining > 0 && (phase.type === 'work' || phase.type === 'amrap');
   setRingClass(phase.type, urgent);
+  applyPhaseColor(phase, frac);
 }
 
 function updateRingCountUp(elapsed, phase) {
+  let frac;
   if (phase.capped && isFinite(phase.duration)) {
-    const frac = Math.min(1, elapsed / phase.duration);
+    frac = Math.min(1, elapsed / phase.duration);
     $('ringFg').style.strokeDashoffset = String(RING_C * (1 - frac));
     const remaining = phase.duration - elapsed;
     setRingClass(phase.type, remaining <= 3);
   } else {
-    const frac = (elapsed % 60) / 60;
+    frac = (elapsed % 60) / 60;
     $('ringFg').style.strokeDashoffset = String(RING_C * (1 - frac));
     setRingClass(phase.type, false);
   }
   $('ringTime').textContent = formatTime(elapsed);
+  applyPhaseColor(phase, frac);
 }
 
 function renderPhaseChrome() {
@@ -389,6 +435,7 @@ function renderPhaseChrome() {
   $('pauseBtn').innerHTML = '<span aria-hidden="true">⏸</span> Pauză';
   setRingClass(phase.type, false);
   $('ringFg').style.strokeDashoffset = String(RING_C);
+  applyPhaseColor(phase, 0);
 }
 
 function showTimerOverlay() { $('timerOverlay').hidden = false; }

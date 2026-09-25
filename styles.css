@@ -81,11 +81,11 @@ body { -webkit-tap-highlight-color: transparent; }
 }
 
 .brand-credit {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  vertical-align: middle;
-  margin-left: 4px;
+  display: block;
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
 }
 
 .subtitle {
@@ -416,11 +416,11 @@ fieldset.field legend {
 
 .timer-credit {
   margin: 18px 0 0;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   letter-spacing: .3px;
   color: var(--primary);
-  transition: color 300ms ease;
+  transition: color 250ms linear;
 }
 
 .control-btn {
@@ -455,27 +455,13 @@ fieldset.field legend {
 }
 .result-detail { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
 
-/* Phase color states */
-.phase-work .ring-fg { stroke: var(--primary); }
-.phase-rest .ring-fg { stroke: var(--warning); }
-.phase-prep .ring-fg,
-.phase-warmup .ring-fg { stroke: var(--accent); }
-.phase-amrap .ring-fg { stroke: var(--primary); }
-.phase-fortime .ring-fg { stroke: var(--accent); }
-.phase-urgent .ring-fg { stroke: var(--danger); }
-
+/* Phase label color (ring-fg stroke and timer-credit color are driven
+   continuously by JS — they fade from a start color to an end color as
+   each phase progresses, see updateRingCountDown/updateRingCountUp) */
 .phase-rest .ring-phase { color: var(--warning); }
 .phase-prep .ring-phase,
 .phase-warmup .ring-phase { color: var(--accent); }
 .phase-urgent .ring-phase { color: var(--danger); }
-
-.phase-work .timer-credit,
-.phase-amrap .timer-credit { color: var(--primary); }
-.phase-rest .timer-credit { color: var(--warning); }
-.phase-prep .timer-credit,
-.phase-warmup .timer-credit,
-.phase-fortime .timer-credit { color: var(--accent); }
-.phase-urgent .timer-credit { color: var(--danger); }
 
 @media (max-width: 420px) {
   .brand h1 { font-size: 24px; }
