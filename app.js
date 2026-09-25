@@ -23,7 +23,7 @@ function cssVar(name) {
 
 function hexToRgb(hex) {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
-  if (!m) return [22, 163, 74]; // fallback: primary green
+  if (!m) return [37, 99, 235]; // fallback: primary blue
   return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
 }
 
@@ -40,10 +40,10 @@ function lerpColor(hex1, hex2, t) {
 const PHASE_COLOR_PAIRS = {
   prep: ['--accent', '--primary'],
   warmup: ['--accent', '--warning'],
-  work: ['--primary', '--danger'],
-  rest: ['--warning', '--primary'],
-  amrap: ['--primary', '--danger'],
-  fortime: ['--accent', '--danger'],
+  work: ['--primary-light', '--primary-dark'],
+  rest: ['--warning', '--warning'],
+  amrap: ['--primary-light', '--primary-dark'],
+  fortime: ['--accent', '--primary-dark'],
 };
 
 function applyPhaseColor(phase, frac) {
