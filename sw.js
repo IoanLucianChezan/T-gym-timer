@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-timer-v2';
+const CACHE_NAME = 'workout-timer-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -12,7 +12,12 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => Promise.all(
+        // bypass the HTTP cache so a stale asset never gets baked into a fresh cache version
+        ASSETS.map((url) => fetch(url, { cache: 'reload' }).then((res) => cache.put(url, res)))
+      ))
+      .then(() => self.skipWaiting())
   );
 });
 
