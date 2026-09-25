@@ -226,6 +226,50 @@ textarea:focus {
 
 textarea { resize: vertical; }
 
+/* Stepper (+/-) for numeric fields */
+.stepper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+  transition: border-color var(--transition);
+}
+.stepper:focus-within { border-color: var(--primary); }
+
+.stepper input[type="number"] {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  -moz-appearance: textfield;
+}
+.stepper input[type="number"]:focus { border-color: transparent; }
+.stepper input[type="number"]::-webkit-inner-spin-button,
+.stepper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.stepper-btn {
+  flex-shrink: 0;
+  width: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), opacity var(--transition);
+}
+.stepper-btn:first-child { border-right: 1px solid var(--border); }
+.stepper-btn:last-child { border-left: 1px solid var(--border); }
+.stepper-btn:hover { background: var(--border); }
+.stepper-btn:disabled { opacity: .35; cursor: not-allowed; background: transparent; }
+
 .toggle-field label {
   display: flex;
   align-items: center;
@@ -242,6 +286,25 @@ textarea { resize: vertical; }
 }
 .switch-field label { margin: 0; font-weight: 600; }
 .switch-field input[type="checkbox"] { width: 20px; height: 20px; }
+
+.install-row { margin-bottom: 22px; }
+.install-btn {
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--primary-contrast);
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.install-btn:active { transform: scale(0.98); }
 
 fieldset.field {
   border: none;
@@ -460,6 +523,71 @@ fieldset.field legend {
   flex-wrap: wrap;
 }
 
+/* AMRAP rounds counter */
+.rounds-box {
+  margin: 4px 0 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+
+.rounds-readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.rounds-count {
+  font-size: 34px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.rounds-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.rounds-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.rounds-btn {
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.rounds-minus {
+  flex-shrink: 0;
+  width: 44px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+}
+.rounds-minus:hover { background: var(--border); }
+
+.rounds-plus {
+  flex: 1;
+  padding: 12px;
+  font-size: 15px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  color: var(--primary-contrast);
+  box-shadow: var(--shadow-sm);
+}
+.rounds-plus:active { transform: scale(0.98); }
+
 .timer-credit {
   margin: 18px 0 0;
   font-size: 10px;
@@ -575,5 +703,24 @@ fieldset.field legend {
   #timerOverlay .timer-credit {
     font-size: 17px;
     margin-top: 26px;
+  }
+
+  #timerOverlay .rounds-box {
+    width: 100%;
+    padding: 20px;
+    margin-bottom: 26px;
+  }
+
+  #timerOverlay .rounds-count { font-size: 46px; }
+  #timerOverlay .rounds-label { font-size: 15px; }
+
+  #timerOverlay .rounds-minus {
+    width: 56px;
+    font-size: 24px;
+  }
+
+  #timerOverlay .rounds-plus {
+    padding: 16px;
+    font-size: 18px;
   }
 }

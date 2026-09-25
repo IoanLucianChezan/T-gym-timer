@@ -49,22 +49,38 @@
 
             <div class="field">
               <label for="hiitSets">Seturi</label>
-              <input type="number" id="hiitSets" min="1" max="99" value="8" inputmode="numeric" />
+              <div class="stepper" data-step="1">
+                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                <input type="number" id="hiitSets" min="1" max="99" value="8" inputmode="numeric" />
+                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              </div>
             </div>
 
             <div class="field">
               <label for="hiitWork">Timp exercițiu (secunde)</label>
-              <input type="number" id="hiitWork" min="1" max="3600" value="40" inputmode="numeric" />
+              <div class="stepper" data-step="5">
+                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                <input type="number" id="hiitWork" min="1" max="3600" value="40" inputmode="numeric" />
+                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              </div>
             </div>
 
             <div class="field">
               <label for="hiitRest">Timp pauză (secunde)</label>
-              <input type="number" id="hiitRest" min="0" max="3600" value="20" inputmode="numeric" />
+              <div class="stepper" data-step="5">
+                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                <input type="number" id="hiitRest" min="0" max="3600" value="20" inputmode="numeric" />
+                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              </div>
             </div>
 
             <div class="field">
               <label for="hiitWarmup">Timp încălzire (secunde, opțional)</label>
-              <input type="number" id="hiitWarmup" min="0" max="3600" value="0" inputmode="numeric" />
+              <div class="stepper" data-step="5">
+                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                <input type="number" id="hiitWarmup" min="0" max="3600" value="0" inputmode="numeric" />
+                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              </div>
             </div>
 
             <div class="field">
@@ -101,11 +117,19 @@
             <div class="field-row">
               <div class="field">
                 <label for="amrapMin">Minute</label>
-                <input type="number" id="amrapMin" min="0" max="180" value="10" inputmode="numeric" />
+                <div class="stepper" data-step="1">
+                  <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                  <input type="number" id="amrapMin" min="0" max="180" value="10" inputmode="numeric" />
+                  <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+                </div>
               </div>
               <div class="field">
                 <label for="amrapSec">Secunde</label>
-                <input type="number" id="amrapSec" min="0" max="59" value="0" inputmode="numeric" />
+                <div class="stepper" data-step="5">
+                  <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                  <input type="number" id="amrapSec" min="0" max="59" value="0" inputmode="numeric" />
+                  <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+                </div>
               </div>
             </div>
 
@@ -145,11 +169,19 @@
             <div class="field-row" id="ftCapFields" hidden>
               <div class="field">
                 <label for="ftCapMin">Minute</label>
-                <input type="number" id="ftCapMin" min="0" max="180" value="20" inputmode="numeric" />
+                <div class="stepper" data-step="1">
+                  <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                  <input type="number" id="ftCapMin" min="0" max="180" value="20" inputmode="numeric" />
+                  <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+                </div>
               </div>
               <div class="field">
                 <label for="ftCapSec">Secunde</label>
-                <input type="number" id="ftCapSec" min="0" max="59" value="0" inputmode="numeric" />
+                <div class="stepper" data-step="5">
+                  <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                  <input type="number" id="ftCapSec" min="0" max="59" value="0" inputmode="numeric" />
+                  <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+                </div>
               </div>
             </div>
 
@@ -177,6 +209,13 @@
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
       <button class="close-x" id="settingsClose" type="button" aria-label="Închide">✕</button>
       <h2 id="settingsTitle">Setări</h2>
+
+      <div class="field install-row" id="installRow" hidden>
+        <button type="button" class="install-btn" id="installBtn" hidden>
+          <span aria-hidden="true">⬇️</span> Instalează aplicația
+        </button>
+        <p class="field-hint" id="installHint" hidden>Pe iPhone/iPad: apasă Distribuie (din Safari), apoi „Adaugă pe ecranul principal”.</p>
+      </div>
 
       <fieldset class="field">
         <legend>Numărătoare de pregătire</legend>
@@ -224,6 +263,17 @@
       <h3 class="timer-title" id="timerTitle">—</h3>
       <p class="timer-meta" id="timerSet"></p>
       <p class="timer-next" id="timerNext"></p>
+
+      <div class="rounds-box" id="roundsBox" hidden>
+        <div class="rounds-readout">
+          <span class="rounds-count" id="roundsCount">0</span>
+          <span class="rounds-label">runde</span>
+        </div>
+        <div class="rounds-btns">
+          <button type="button" class="rounds-btn rounds-minus" id="roundsMinus" aria-label="Scade o rundă">−</button>
+          <button type="button" class="rounds-btn rounds-plus" id="roundsPlus"><span aria-hidden="true">+1</span> Rundă</button>
+        </div>
+      </div>
 
       <div class="timer-actions">
         <button class="control-btn" id="pauseBtn" type="button"><span aria-hidden="true">⏸</span> Pauză</button>

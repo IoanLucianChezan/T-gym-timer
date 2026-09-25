@@ -238,6 +238,7 @@ function startSession(mode, phases, meta) {
     lastTickSecond: null,
     meta: meta || {},
     sessionStartTs: Date.now(),
+    rounds: 0,
   };
   acquireWakeLock();
   showTimerOverlay();
@@ -324,6 +325,20 @@ function skipPhase() {
   advancePhase();
 }
 
+function incrementRound() {
+  if (!session || session.finished || session.mode !== 'amrap') return;
+  session.rounds += 1;
+  $('roundsCount').textContent = String(session.rounds);
+  vibrate(25);
+}
+
+function decrementRound() {
+  if (!session || session.finished || session.mode !== 'amrap') return;
+  session.rounds = Math.max(0, session.rounds - 1);
+  $('roundsCount').textContent = String(session.rounds);
+  vibrate(25);
+}
+
 function abortSession() {
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = null;
@@ -358,7 +373,7 @@ function finishSession(reason) {
     detail = `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
   } else if (mode === 'amrap') {
     title = 'AMRAP finalizat! 🎉';
-    bigTime = formatTime(meta.duration);
+    bigTime = `${session.rounds} runde`;
     detail = `Timp alocat: ${formatTime(meta.duration)}`;
   } else if (mode === 'fortime') {
     const elapsed = reason === 'cap-reached' ? meta.cap : phaseElapsedSeconds();
@@ -432,6 +447,8 @@ function renderPhaseChrome() {
 
   $('skipBtn').hidden = !(session.mode === 'hiit' && next);
   $('finishBtn').hidden = session.mode !== 'fortime';
+  $('roundsBox').hidden = session.mode !== 'amrap';
+  $('roundsCount').textContent = String(session.rounds);
   $('pauseBtn').innerHTML = '<span aria-hidden="true">⏸</span> Pauză';
   setRingClass(phase.type, false);
   $('ringFg').style.strokeDashoffset = String(RING_C);
@@ -521,6 +538,44 @@ function initTabs() {
   });
 }
 
+function initSteppers() {
+  document.querySelectorAll('.stepper').forEach((wrap) => {
+    const input = wrap.querySelector('input[type="number"]');
+    const step = parseInt(wrap.dataset.step, 10) || 1;
+
+    const clamp = (val) => {
+      const min = input.min !== '' ? parseInt(input.min, 10) : -Infinity;
+      const max = input.max !== '' ? parseInt(input.max, 10) : Infinity;
+      return Math.min(max, Math.max(min, val));
+    };
+
+    const syncButtons = () => {
+      const val = parseInt(input.value, 10) || 0;
+      const min = input.min !== '' ? parseInt(input.min, 10) : -Infinity;
+      const max = input.max !== '' ? parseInt(input.max, 10) : Infinity;
+      wrap.querySelector('[data-dir="-1"]').disabled = val <= min;
+      wrap.querySelector('[data-dir="1"]').disabled = val >= max;
+    };
+
+    wrap.querySelectorAll('.stepper-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const dir = parseInt(btn.dataset.dir, 10);
+        const current = parseInt(input.value, 10) || 0;
+        input.value = String(clamp(current + dir * step));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        syncButtons();
+      });
+    });
+
+    input.addEventListener('input', syncButtons);
+    input.addEventListener('change', () => {
+      input.value = String(clamp(parseInt(input.value, 10) || 0));
+      syncButtons();
+    });
+    syncButtons();
+  });
+}
+
 function initSettingsModal() {
   const modal = $('settingsModal');
   $('settingsBtn').addEventListener('click', () => {
@@ -530,6 +585,7 @@ function initSettingsModal() {
     $('soundToggle').checked = settings.sound;
     $('vibrateToggle').checked = settings.vibrate;
     $('wakeToggle').checked = settings.wake;
+    updateInstallRow();
     modal.hidden = false;
   });
   $('settingsClose').addEventListener('click', () => { modal.hidden = true; });
@@ -554,6 +610,8 @@ function initTimerControls() {
   $('skipBtn').addEventListener('click', skipPhase);
   $('finishBtn').addEventListener('click', () => finishSession('finished'));
   $('timerClose').addEventListener('click', abortSession);
+  $('roundsPlus').addEventListener('click', incrementRound);
+  $('roundsMinus').addEventListener('click', decrementRound);
 }
 
 function initResultControls() {
@@ -562,6 +620,56 @@ function initResultControls() {
     hideResult();
     if (lastConfig) launch(lastConfig.mode);
   });
+}
+
+/* ---------- custom install prompt ---------- */
+let deferredInstallPrompt = null;
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function isIosDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function updateInstallRow() {
+  const row = $('installRow');
+  const btn = $('installBtn');
+  const hint = $('installHint');
+  if (isStandalone()) { row.hidden = true; return; }
+  if (deferredInstallPrompt) {
+    row.hidden = false;
+    btn.hidden = false;
+    hint.hidden = true;
+  } else if (isIosDevice()) {
+    row.hidden = false;
+    btn.hidden = true;
+    hint.hidden = false;
+  } else {
+    row.hidden = true;
+  }
+}
+
+function initInstallPrompt() {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    updateInstallRow();
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    updateInstallRow();
+  });
+  $('installBtn').addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    updateInstallRow();
+  });
+  updateInstallRow();
 }
 
 function registerServiceWorker() {
@@ -575,9 +683,11 @@ function registerServiceWorker() {
 function init() {
   initTheme();
   initTabs();
+  initSteppers();
   initSettingsModal();
   initTimerControls();
   initResultControls();
+  initInstallPrompt();
   registerServiceWorker();
 }
 
