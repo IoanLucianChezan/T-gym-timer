@@ -132,26 +132,38 @@ function ensureAudio() {
   return audioCtx;
 }
 
-function beep(freq, durationMs, type = 'sine', gainVal = 0.18) {
+function beep(freq, durationMs, type = 'sine', gainVal = 0.22) {
   if (!settings.sound) return;
   const ctx = ensureAudio();
   if (!ctx) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.value = freq;
-  gain.gain.value = gainVal;
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  const now = ctx.currentTime;
-  gain.gain.setValueAtTime(gainVal, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
-  osc.start(now);
-  osc.stop(now + durationMs / 1000);
+  const play = () => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = gainVal;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(gainVal, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
+    osc.start(now);
+    osc.stop(now + durationMs / 1000);
+  };
+  if (ctx.state === 'running') {
+    play();
+  } else {
+    // Phones (mainly iOS) suspend the AudioContext after the screen dims or
+    // the tab is backgrounded; starting an oscillator while still suspended
+    // produces no sound at all. Resume first and only play once it settles
+    // (resume() silently no-ops without a real user gesture, but this still
+    // catches every case where one is available -- e.g. a tap on pause).
+    ctx.resume().then(play).catch(() => {});
+  }
 }
 
 function cueTick(remaining) {
-  beep(880, 100, 'square', 0.12);
+  beep(880, 100, 'square', 0.16);
   vibrate(30);
 }
 function cuePhaseStart(type) {
@@ -185,7 +197,10 @@ async function releaseWakeLock() {
   if (wakeLock) { try { await wakeLock.release(); } catch (e) { /* ignore */ } wakeLock = null; }
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && session && !session.finished) acquireWakeLock();
+  if (document.visibilityState === 'visible' && session && !session.finished) {
+    acquireWakeLock();
+    ensureAudio();
+  }
 });
 
 /* ---------- phase builders ---------- */
@@ -349,6 +364,7 @@ function pauseSession() {
 
 function resumeSession() {
   if (!session || !session.isPaused) return;
+  ensureAudio(); // a real tap: a good chance to recover an AudioContext a backgrounded phone suspended
   session.pausedAccum += Date.now() - session.pauseStartTs;
   session.isPaused = false;
   session.pauseStartTs = null;
@@ -357,6 +373,7 @@ function resumeSession() {
 
 function skipPhase() {
   if (!session || session.finished) return;
+  ensureAudio();
   advancePhase();
 }
 
