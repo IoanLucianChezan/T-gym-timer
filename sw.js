@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-timer-v10';
+const CACHE_NAME = 'workout-timer-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -34,8 +34,12 @@ self.addEventListener('fetch', (event) => {
   if (new URL(event.request.url).origin !== self.location.origin) return; // leave cross-origin streams (radio) to the network
   // Network-first: always serve the latest deploy when online, and only
   // fall back to the cache when the network is unavailable (offline).
+  // cache: 'no-store' bypasses the browser/CDN's own HTTP cache too --
+  // without it, "network-first" could still hand back a stale response
+  // for whichever files GitHub Pages/Fastly happened to still have
+  // fresh in that cache, out of step with the other files.
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then((response) => {
         if (response && response.ok) {
           const clone = response.clone();
