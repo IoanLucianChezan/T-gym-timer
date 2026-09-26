@@ -121,6 +121,15 @@ function stopRadio() {
   if (radioAudio) { radioAudio.pause(); }
 }
 
+/* ---------- silent keep-alive ----------
+   Phones (mainly iOS) only keep the device's audio session -- and with it
+   the Web Audio AudioContext used for beeps -- active while an <audio>
+   element is actually playing. With the radio stream on, that's a side
+   effect of the radio itself; with it off, cues would eventually go silent
+   after the screen dims or the app is backgrounded. A tiny looping silent
+   clip keeps the session alive either way, at zero audible cost. */
+const SILENT_AUDIO_SRC = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YUAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+
 /* ---------- audio cues ---------- */
 let audioCtx = null;
 function ensureAudio() {
@@ -130,6 +139,19 @@ function ensureAudio() {
   }
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
+}
+
+let keepAliveAudio = null;
+function startKeepAliveAudio() {
+  if (!settings.sound) return;
+  if (!keepAliveAudio) {
+    keepAliveAudio = new Audio(SILENT_AUDIO_SRC);
+    keepAliveAudio.loop = true;
+  }
+  keepAliveAudio.play().catch(() => { /* will retry on the next real user gesture */ });
+}
+function stopKeepAliveAudio() {
+  if (keepAliveAudio) keepAliveAudio.pause();
 }
 
 function beep(freq, durationMs, type = 'sine', gainVal = 0.22) {
@@ -200,6 +222,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && session && !session.finished) {
     acquireWakeLock();
     ensureAudio();
+    startKeepAliveAudio();
   }
 });
 
@@ -276,6 +299,7 @@ let lastConfig = null; // { mode, cfg } for "Repeat"
 
 function startSession(mode, phases, meta) {
   ensureAudio();
+  startKeepAliveAudio();
   session = {
     mode,
     phases,
@@ -365,6 +389,7 @@ function pauseSession() {
 function resumeSession() {
   if (!session || !session.isPaused) return;
   ensureAudio(); // a real tap: a good chance to recover an AudioContext a backgrounded phone suspended
+  startKeepAliveAudio();
   session.pausedAccum += Date.now() - session.pauseStartTs;
   session.isPaused = false;
   session.pauseStartTs = null;
@@ -397,6 +422,7 @@ function abortSession() {
   session = null;
   releaseWakeLock();
   stopRadio();
+  stopKeepAliveAudio();
   hideTimerOverlay();
 }
 
@@ -407,6 +433,7 @@ function finishSession(reason) {
   tickHandle = null;
   releaseWakeLock();
   stopRadio();
+  stopKeepAliveAudio();
 
   const totalElapsed = (Date.now() - session.sessionStartTs) / 1000;
   const mode = session.mode;
