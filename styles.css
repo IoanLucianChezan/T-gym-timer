@@ -428,6 +428,15 @@ textarea { resize: vertical; }
 .interval-move:disabled { opacity: .3; cursor: not-allowed; background: transparent; }
 .interval-remove:hover { background: var(--danger-soft); color: var(--danger); }
 
+/* A tap on touch devices leaves the button focused with no natural
+   "unhover" to clear it, so the hover/focus tint can look stuck after
+   reordering rows. Keep a visible ring for real keyboard focus only. */
+.interval-move:focus:not(:focus-visible),
+.interval-remove:focus:not(:focus-visible) {
+  background: transparent;
+  color: var(--text-muted);
+}
+
 .interval-total {
   margin: 0 0 18px;
   font-size: 14px;

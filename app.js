@@ -674,7 +674,7 @@ function addIntervalRow(name, duration, rest) {
   const nameInput = document.createElement('input');
   nameInput.type = 'text';
   nameInput.className = 'interval-name';
-  nameInput.placeholder = 'Exercițiu (opțional)';
+  nameInput.placeholder = rest ? 'Pauză (opțional)' : 'Exercițiu (opțional)';
   nameInput.value = name || '';
 
   const durationWrap = document.createElement('div');
@@ -698,7 +698,10 @@ function addIntervalRow(name, duration, rest) {
   restInput.type = 'checkbox';
   restInput.className = 'interval-rest';
   restInput.checked = !!rest;
-  restInput.addEventListener('change', () => row.classList.toggle('is-rest', restInput.checked));
+  restInput.addEventListener('change', () => {
+    row.classList.toggle('is-rest', restInput.checked);
+    nameInput.placeholder = restInput.checked ? 'Pauză (opțional)' : 'Exercițiu (opțional)';
+  });
   restLabel.append(restInput, document.createTextNode(' Pauză'));
 
   const actions = document.createElement('div');
@@ -715,6 +718,7 @@ function addIntervalRow(name, duration, rest) {
       $('customList').insertBefore(row, row.previousElementSibling);
       updateCustomListState();
     }
+    moveUpBtn.blur();
   });
 
   const moveDownBtn = document.createElement('button');
@@ -728,6 +732,7 @@ function addIntervalRow(name, duration, rest) {
       $('customList').insertBefore(row.nextElementSibling, row);
       updateCustomListState();
     }
+    moveDownBtn.blur();
   });
 
   const removeBtn = document.createElement('button');
