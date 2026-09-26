@@ -194,10 +194,21 @@ function buildHiitPhases(cfg) {
   if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
   if (cfg.warmup > 0) phases.push({ type: 'warmup', label: 'Încălzire', duration: cfg.warmup });
   const names = cfg.names.length ? cfg.names : null;
-  for (let i = 1; i <= cfg.sets; i++) {
-    const exName = names ? names[(i - 1) % names.length] : 'Exercițiu';
-    phases.push({ type: 'work', label: exName, duration: cfg.work, set: i, totalSets: cfg.sets });
-    if (i < cfg.sets) phases.push({ type: 'rest', label: 'Pauză', duration: cfg.rest, set: i, totalSets: cfg.sets });
+  for (let s = 1; s <= cfg.sets; s++) {
+    const exName = names ? names[(s - 1) % names.length] : 'Exercițiu';
+    for (let r = 1; r <= cfg.reps; r++) {
+      const isLastOverall = s === cfg.sets && r === cfg.reps;
+      phases.push({
+        type: 'work', label: exName, duration: cfg.work,
+        set: s, totalSets: cfg.sets, rep: r, totalReps: cfg.reps,
+      });
+      if (!isLastOverall) {
+        phases.push({
+          type: 'rest', label: 'Pauză', duration: cfg.rest,
+          set: s, totalSets: cfg.sets, rep: r, totalReps: cfg.reps,
+        });
+      }
+    }
   }
   return phases;
 }
@@ -393,7 +404,9 @@ function finishSession(reason) {
   let detail = '';
 
   if (mode === 'hiit') {
-    detail = `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
+    detail = meta.reps > 1
+      ? `${meta.sets} seturi × ${meta.reps} repetări · ${meta.work}s lucru / ${meta.rest}s pauză`
+      : `${meta.sets} seturi · ${meta.work}s lucru / ${meta.rest}s pauză`;
   } else if (mode === 'custom') {
     detail = meta.rounds > 1
       ? `${meta.items.length} intervale × ${meta.rounds} runde`
@@ -459,7 +472,9 @@ function renderPhaseChrome() {
   const isListMode = session.mode === 'hiit' || session.mode === 'custom';
 
   if (isListMode && phase.set) {
-    $('timerSet').textContent = `Set ${phase.set} / ${phase.totalSets}`;
+    $('timerSet').textContent = phase.totalReps > 1
+      ? `Set ${phase.set} / ${phase.totalSets} · Rep ${phase.rep} / ${phase.totalReps}`
+      : `Set ${phase.set} / ${phase.totalSets}`;
   } else {
     $('timerSet').textContent = '';
   }
@@ -477,8 +492,19 @@ function renderPhaseChrome() {
   $('roundsCount').textContent = String(session.rounds);
   $('pauseBtn').innerHTML = '<span aria-hidden="true">⏸</span> Pauză';
   setRingClass(phase.type, false);
-  $('ringFg').style.strokeDashoffset = String(RING_C);
+  resetRingInstantly(phase);
+}
+
+// Snap the ring back to empty and its new phase's start color without
+// animating through the previous phase's end state (would otherwise show
+// a visible sweep/jump as one phase's ring hands off to the next).
+function resetRingInstantly(phase) {
+  const ringFg = $('ringFg');
+  ringFg.style.transition = 'none';
+  ringFg.style.strokeDashoffset = String(RING_C);
   applyPhaseColor(phase, 0);
+  void ringFg.offsetWidth; // force reflow so the reset above is committed before re-enabling the transition
+  ringFg.style.transition = '';
 }
 
 function showTimerOverlay() { $('timerOverlay').hidden = false; }
@@ -537,6 +563,7 @@ function parseNames(raw) {
 function readHiitConfig() {
   return {
     sets: Math.max(1, parseInt($('hiitSets').value, 10) || 1),
+    reps: Math.max(1, parseInt($('hiitReps').value, 10) || 1),
     work: Math.max(1, parseInt($('hiitWork').value, 10) || 1),
     rest: Math.max(0, parseInt($('hiitRest').value, 10) || 0),
     warmup: Math.max(0, parseInt($('hiitWarmup').value, 10) || 0),
@@ -800,11 +827,12 @@ function restoreConfigs() {
   if (saved.hiit) {
     const c = saved.hiit;
     if (c.sets != null) $('hiitSets').value = String(c.sets);
+    if (c.reps != null) $('hiitReps').value = String(c.reps);
     if (c.work != null) $('hiitWork').value = String(c.work);
     if (c.rest != null) $('hiitRest').value = String(c.rest);
     if (c.warmup != null) $('hiitWarmup').value = String(c.warmup);
     if (c.names) $('hiitNames').value = c.names.join('\n');
-    ['hiitSets', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+    ['hiitSets', 'hiitReps', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
   }
 
   if (saved.amrap) {

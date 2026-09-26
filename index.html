@@ -18,7 +18,7 @@
       <div class="brand">
         <img class="brand-logo" src="tgym-logo-landscape.png" alt="T Gym" />
         <h1>Workout Timer</h1>
-        <p class="subtitle">Train insane or remain the same. T gym energy!</p>
+        <p class="subtitle">Train insane or remain the same.<br class="subtitle-break"> T gym energy!</p>
       </div>
       <div class="header-actions">
         <button id="themeToggle" class="icon-toggle" type="button" aria-label="Comută tema">
@@ -55,7 +55,17 @@
             </div>
 
             <div class="field">
-              <label for="hiitWork">Timp exercițiu (secunde)</label>
+              <label for="hiitReps">Repetări</label>
+              <div class="stepper" data-step="1">
+                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                <input type="number" id="hiitReps" min="1" max="99" value="1" inputmode="numeric" />
+                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              </div>
+              <p class="field-hint">Câte repetări are fiecare set (implicit 1 = un singur lucru+pauză per set).</p>
+            </div>
+
+            <div class="field">
+              <label for="hiitWork">Timp lucru / repetare (secunde)</label>
               <div class="stepper" data-step="5">
                 <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
                 <input type="number" id="hiitWork" min="1" max="3600" value="40" inputmode="numeric" />
@@ -64,7 +74,7 @@
             </div>
 
             <div class="field">
-              <label for="hiitRest">Timp pauză (secunde)</label>
+              <label for="hiitRest">Timp pauză / repetare (secunde)</label>
               <div class="stepper" data-step="5">
                 <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
                 <input type="number" id="hiitRest" min="0" max="3600" value="20" inputmode="numeric" />
@@ -82,9 +92,9 @@
             </div>
 
             <div class="field">
-              <label for="hiitNames">Nume exerciții per interval (opțional)</label>
+              <label for="hiitNames">Nume exerciții per set (opțional)</label>
               <textarea id="hiitNames" rows="3" placeholder="Un nume pe linie, ex:&#10;Burpees&#10;Mountain climbers&#10;Jumping jacks"></textarea>
-              <p class="field-hint">Dacă pui mai puține nume decât seturi, se repetă în ordine. Fără nume → afișează „Exercițiu”.</p>
+              <p class="field-hint">Un nume pe set (rămâne același pentru toate repetările din acel set). Dacă pui mai puține nume decât seturi, se repetă în ordine. Fără nume → afișează „Exercițiu”.</p>
             </div>
 
             <div class="field toggle-field">

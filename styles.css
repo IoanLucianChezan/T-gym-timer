@@ -104,6 +104,14 @@ body { -webkit-tap-highlight-color: transparent; }
   font-size: 14px;
 }
 
+.subtitle-break { display: none; }
+
+/* Force "T gym energy!" onto its own line on mobile instead of letting it
+   wrap mid-phrase (e.g. splitting after "T gym" with "energy!" alone). */
+@media (max-width: 480px) {
+  .subtitle-break { display: inline; }
+}
+
 .header-actions {
   display: flex;
   gap: 10px;
