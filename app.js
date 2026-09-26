@@ -675,7 +675,14 @@ function addIntervalRow(name, duration, rest) {
   nameInput.type = 'text';
   nameInput.className = 'interval-name';
   nameInput.placeholder = rest ? 'Pauză (opțional)' : 'Exercițiu (opțional)';
-  nameInput.value = name || '';
+  let restNameAutoFilled = false;
+  if (!name && rest) {
+    nameInput.value = 'Pauză';
+    restNameAutoFilled = true;
+  } else {
+    nameInput.value = name || '';
+  }
+  nameInput.addEventListener('input', () => { restNameAutoFilled = false; });
 
   const durationWrap = document.createElement('div');
   durationWrap.className = 'interval-duration-wrap';
@@ -699,8 +706,16 @@ function addIntervalRow(name, duration, rest) {
   restInput.className = 'interval-rest';
   restInput.checked = !!rest;
   restInput.addEventListener('change', () => {
-    row.classList.toggle('is-rest', restInput.checked);
-    nameInput.placeholder = restInput.checked ? 'Pauză (opțional)' : 'Exercițiu (opțional)';
+    const checked = restInput.checked;
+    row.classList.toggle('is-rest', checked);
+    nameInput.placeholder = checked ? 'Pauză (opțional)' : 'Exercițiu (opțional)';
+    if (checked && !nameInput.value.trim()) {
+      nameInput.value = 'Pauză';
+      restNameAutoFilled = true;
+    } else if (!checked && restNameAutoFilled) {
+      nameInput.value = '';
+      restNameAutoFilled = false;
+    }
   });
   restLabel.append(restInput, document.createTextNode(' Pauză'));
 
