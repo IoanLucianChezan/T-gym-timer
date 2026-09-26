@@ -132,12 +132,31 @@ const SILENT_AUDIO_SRC = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEA
 
 /* ---------- audio cues ---------- */
 let audioCtx = null;
+let cueDestNode = null; // MediaStreamAudioDestinationNode the cue tones route through
+let cueAudioEl = null;  // <audio> element playing that stream
+
 function ensureAudio() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (Ctx) audioCtx = new Ctx();
   }
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  // Web Audio API oscillators plugged straight into ctx.destination are
+  // treated by iOS as "ambient" sound, which some devices/settings mute
+  // independently of the ringer/media volume (the radio stream plays fine
+  // because it's a real <audio> element, a different, unmuted category).
+  // Piping the same oscillators into a MediaStream and playing that through
+  // our own <audio> element puts the cues in that same working category.
+  if (audioCtx && !cueAudioEl && audioCtx.createMediaStreamDestination) {
+    try {
+      cueDestNode = audioCtx.createMediaStreamDestination();
+      cueAudioEl = new Audio();
+      cueAudioEl.srcObject = cueDestNode.stream;
+      cueAudioEl.play().catch(() => {});
+    } catch (e) { cueDestNode = null; cueAudioEl = null; }
+  } else if (cueAudioEl && cueAudioEl.paused) {
+    cueAudioEl.play().catch(() => {});
+  }
   return audioCtx;
 }
 
@@ -165,7 +184,7 @@ function beep(freq, durationMs, type = 'sine', gainVal = 0.22) {
     osc.frequency.value = freq;
     gain.gain.value = gainVal;
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(cueDestNode || ctx.destination);
     const now = ctx.currentTime;
     gain.gain.setValueAtTime(gainVal, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + durationMs / 1000);
