@@ -677,6 +677,21 @@ function initTabs() {
   });
 }
 
+const EMOM_PRESET = { sets: 1, reps: 20, work: 60, rest: 0, warmup: 0 };
+
+function initEmomToggle() {
+  $('hiitEmom').addEventListener('change', (e) => {
+    if (!e.target.checked) return;
+    $('hiitSets').value = String(EMOM_PRESET.sets);
+    $('hiitReps').value = String(EMOM_PRESET.reps);
+    $('hiitWork').value = String(EMOM_PRESET.work);
+    $('hiitRest').value = String(EMOM_PRESET.rest);
+    $('hiitWarmup').value = String(EMOM_PRESET.warmup);
+    ['hiitSets', 'hiitReps', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+    $('panel-hiit').querySelector('.config-details').open = true;
+  });
+}
+
 function formatIntervalTotal() {
   const rows = Array.from($('customList').querySelectorAll('.interval-row'));
   const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
@@ -912,6 +927,7 @@ function restoreConfigs() {
 function init() {
   initTheme();
   initTabs();
+  initEmomToggle();
   initCustomList();
   initSteppers();
   restoreConfigs();

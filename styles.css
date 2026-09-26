@@ -280,6 +280,15 @@ textarea { resize: vertical; }
 }
 .toggle-field input[type="checkbox"] { width: 18px; height: 18px; }
 
+.emom-toggle {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+.emom-toggle label { font-weight: 700; color: var(--text); }
+.emom-toggle .field-hint { margin-top: 4px; }
+
 /* Collapsible "Configurare" section (default minimized) */
 .config-details {
   margin-bottom: 18px;
