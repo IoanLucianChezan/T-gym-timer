@@ -223,8 +223,8 @@ function buildHiitPhases(cfg) {
   if (cfg.warmup > 0) phases.push({ type: 'warmup', label: 'Încălzire', duration: cfg.warmup });
   const names = cfg.names.length ? cfg.names : null;
   for (let s = 1; s <= cfg.sets; s++) {
-    const exName = names ? names[(s - 1) % names.length] : 'Exercițiu';
     for (let r = 1; r <= cfg.reps; r++) {
+      const exName = names ? names[(r - 1) % names.length] : 'Exercițiu';
       const isLastOverall = s === cfg.sets && r === cfg.reps;
       phases.push({
         type: 'work', label: exName, duration: cfg.work,
