@@ -280,14 +280,48 @@ textarea { resize: vertical; }
 }
 .toggle-field input[type="checkbox"] { width: 18px; height: 18px; }
 
-.emom-toggle {
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--accent-soft);
+/* Quick Setup: compact preset chips (EMOM / HIIT clasic / Tabata) --
+   deliberately no explanatory copy, just short labeled rows of pills
+   that fill in Seturi/Repetari/Timp lucru/Timp pauza/Timp incalzire. */
+.quick-setup { margin-bottom: 22px; }
+
+.preset-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin-bottom: 8px;
 }
-.emom-toggle label { font-weight: 700; color: var(--text); }
-.emom-toggle .field-hint { margin-top: 4px; }
+.preset-group:last-child { margin-bottom: 0; }
+
+.preset-group-label {
+  flex: 0 0 auto;
+  width: 78px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.preset-chip {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.preset-chip:hover { border-color: var(--primary); color: var(--primary); }
+.preset-chip:active { transform: scale(0.96); }
 
 /* Collapsible "Configurare" section (default minimized) */
 .config-details {

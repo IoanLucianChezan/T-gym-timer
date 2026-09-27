@@ -712,18 +712,37 @@ function initTabs() {
   });
 }
 
-const EMOM_PRESET = { sets: 1, reps: 20, work: 60, rest: 0, warmup: 0 };
+const QUICK_PRESETS = {
+  'emom-10': { sets: 1, reps: 10, work: 60, rest: 0, warmup: 0 },
+  'emom-15': { sets: 1, reps: 15, work: 60, rest: 0, warmup: 0 },
+  'emom-20': { sets: 1, reps: 20, work: 60, rest: 0, warmup: 0 },
+  'emom-25': { sets: 1, reps: 25, work: 60, rest: 0, warmup: 0 },
+  'emom-30': { sets: 1, reps: 30, work: 60, rest: 0, warmup: 0 },
+  'hiit-30-30': { sets: 1, reps: 10, work: 30, rest: 30, warmup: 0 },
+  'hiit-40-20': { sets: 1, reps: 10, work: 40, rest: 20, warmup: 0 },
+  'hiit-45-15': { sets: 1, reps: 10, work: 45, rest: 15, warmup: 0 },
+  'hiit-50-10': { sets: 1, reps: 10, work: 50, rest: 10, warmup: 0 },
+  'tabata-1': { sets: 1, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-2': { sets: 2, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-3': { sets: 3, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-4': { sets: 4, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-5': { sets: 5, reps: 8, work: 20, rest: 10, warmup: 0 },
+};
 
-function initEmomToggle() {
-  $('hiitEmom').addEventListener('change', (e) => {
-    if (!e.target.checked) return;
-    $('hiitSets').value = String(EMOM_PRESET.sets);
-    $('hiitReps').value = String(EMOM_PRESET.reps);
-    $('hiitWork').value = String(EMOM_PRESET.work);
-    $('hiitRest').value = String(EMOM_PRESET.rest);
-    $('hiitWarmup').value = String(EMOM_PRESET.warmup);
-    ['hiitSets', 'hiitReps', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
-    $('panel-hiit').querySelector('.config-details').open = true;
+function applyQuickPreset(key) {
+  const p = QUICK_PRESETS[key];
+  if (!p) return;
+  $('hiitSets').value = String(p.sets);
+  $('hiitReps').value = String(p.reps);
+  $('hiitWork').value = String(p.work);
+  $('hiitRest').value = String(p.rest);
+  $('hiitWarmup').value = String(p.warmup);
+  ['hiitSets', 'hiitReps', 'hiitWork', 'hiitRest', 'hiitWarmup'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+}
+
+function initQuickSetup() {
+  document.querySelectorAll('.preset-chip').forEach((btn) => {
+    btn.addEventListener('click', () => applyQuickPreset(btn.dataset.preset));
   });
 }
 
@@ -964,7 +983,7 @@ function restoreConfigs() {
 function init() {
   initTheme();
   initTabs();
-  initEmomToggle();
+  initQuickSetup();
   initWorkoutLimits();
   initCustomList();
   initSteppers();
