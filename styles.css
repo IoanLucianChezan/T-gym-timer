@@ -660,10 +660,15 @@ textarea { resize: vertical; }
   flex-wrap: wrap;
 }
 
-/* AMRAP rounds counter */
+/* AMRAP rounds counter -- one compact row (count, then +/- buttons)
+   instead of a tall stacked card, so it doesn't eat into the limited
+   vertical space a workout list also needs on mobile. */
 .rounds-box {
-  margin: 4px 0 20px;
-  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 16px;
+  padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-2);
@@ -672,13 +677,13 @@ textarea { resize: vertical; }
 .rounds-readout {
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 5px;
+  flex-shrink: 0;
+  padding-left: 4px;
 }
 
 .rounds-count {
-  font-size: 34px;
+  font-size: 20px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--primary);
@@ -686,7 +691,7 @@ textarea { resize: vertical; }
 }
 
 .rounds-label {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -696,6 +701,7 @@ textarea { resize: vertical; }
 .rounds-btns {
   display: flex;
   gap: 8px;
+  flex: 1;
 }
 
 .rounds-btn {
@@ -707,18 +713,19 @@ textarea { resize: vertical; }
 
 .rounds-minus {
   flex-shrink: 0;
-  width: 44px;
+  width: 32px;
+  height: 32px;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--text);
-  font-size: 18px;
+  font-size: 16px;
 }
 .rounds-minus:hover { background: var(--border); }
 
 .rounds-plus {
   flex: 1;
-  padding: 12px;
-  font-size: 15px;
+  padding: 7px;
+  font-size: 13px;
   background: linear-gradient(90deg, var(--btn-grad-start), var(--btn-grad-end));
   color: var(--primary-contrast);
   box-shadow: var(--shadow-sm);
@@ -823,7 +830,15 @@ textarea { resize: vertical; }
     display: flex;
     flex-direction: column;
     align-items: center;
+    /* Plain "center" hides whatever overflows above the fold when content
+       (e.g. a long workout list) grows taller than the screen -- that's
+       what was pushing the ring up under the logo and burying the close
+       button. "safe center" centers only while it fits, else falls back
+       to the top like flex-start, so overflow only ever grows downward
+       into the scroll area. The plain "center" above is the fallback for
+       browsers that don't understand "safe" and ignore the second line. */
     justify-content: center;
+    justify-content: safe center;
     padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
     overflow-y: auto;
   }
@@ -883,20 +898,21 @@ textarea { resize: vertical; }
 
   #timerOverlay .rounds-box {
     width: 100%;
-    padding: 20px;
-    margin-bottom: 26px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
   }
 
-  #timerOverlay .rounds-count { font-size: 46px; }
-  #timerOverlay .rounds-label { font-size: 15px; }
+  #timerOverlay .rounds-count { font-size: 24px; }
+  #timerOverlay .rounds-label { font-size: 12px; }
 
   #timerOverlay .rounds-minus {
-    width: 56px;
-    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 
   #timerOverlay .rounds-plus {
-    padding: 16px;
-    font-size: 18px;
+    padding: 10px;
+    font-size: 15px;
   }
 }
