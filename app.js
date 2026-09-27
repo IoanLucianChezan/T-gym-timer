@@ -727,6 +727,7 @@ const QUICK_PRESETS = {
   'tabata-3': { sets: 3, reps: 8, work: 20, rest: 10, warmup: 0 },
   'tabata-4': { sets: 4, reps: 8, work: 20, rest: 10, warmup: 0 },
   'tabata-5': { sets: 5, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-8': { sets: 8, reps: 8, work: 20, rest: 10, warmup: 0 },
 };
 
 function applyQuickPreset(key) {
