@@ -280,43 +280,44 @@ textarea { resize: vertical; }
 }
 .toggle-field input[type="checkbox"] { width: 18px; height: 18px; }
 
-/* Quick Setup: compact preset chips (EMOM / HIIT clasic / Tabata) --
-   deliberately no explanatory copy, just short labeled rows of pills
-   that fill in Seturi/Repetari/Timp lucru/Timp pauza/Timp incalzire. */
+/* Quick Setup: compact preset chips (EMOM / HIIT / Tabata) -- deliberately
+   no explanatory copy, just three rows of 4 pills that fill in Seturi/
+   Repetari/Timp lucru/Timp pauza/Timp incalzire. A single grid (with each
+   group and its chip wrapper flattened via display:contents) puts every
+   row's label in column 1 and its four chips in columns 2-5, so e.g.
+   "30/30" lines up exactly under "10 rep" and above "2 set" -- fixed
+   columns give that alignment regardless of each chip's own text length. */
 .quick-setup { margin-bottom: 22px; }
 
-.preset-group {
-  display: flex;
+.preset-grid {
+  display: grid;
+  grid-template-columns: auto repeat(4, minmax(0, 1fr));
+  column-gap: 6px;
+  row-gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-  margin-bottom: 8px;
+  margin-top: 8px;
 }
-.preset-group:last-child { margin-bottom: 0; }
+
+.preset-group { display: contents; }
+.preset-chips { display: contents; }
 
 .preset-group-label {
-  flex: 0 0 auto;
-  width: 78px;
   font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
-}
-
-.preset-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
+  white-space: nowrap;
 }
 
 .preset-chip {
+  width: 100%;
   border: 1px solid var(--border);
   background: var(--surface-2);
   color: var(--text);
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 5px 8px;
   font-size: 12px;
   font-weight: 700;
+  text-align: center;
   white-space: nowrap;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition), color var(--transition);
@@ -324,14 +325,10 @@ textarea { resize: vertical; }
 .preset-chip:hover { border-color: var(--primary); color: var(--primary); }
 .preset-chip:active { transform: scale(0.96); }
 
-/* On narrow screens keep each group's label and chips on one row (tight
-   spacing, no fixed label width) instead of wrapping to a second line --
-   the chip list itself is trimmed to whatever count actually fits. */
 @media (max-width: 480px) {
-  .preset-group { flex-wrap: nowrap; gap: 5px; }
-  .preset-group-label { width: auto; flex-shrink: 0; font-size: 11px; }
-  .preset-chips { flex-wrap: nowrap; gap: 4px; }
-  .preset-chip { padding: 4px 7px; font-size: 10.5px; flex-shrink: 0; }
+  .preset-grid { column-gap: 4px; row-gap: 5px; }
+  .preset-group-label { font-size: 11px; }
+  .preset-chip { padding: 4px 5px; font-size: 10.5px; }
 }
 
 /* Collapsible "Configurare" section (default minimized) */

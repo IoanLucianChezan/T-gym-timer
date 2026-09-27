@@ -717,16 +717,13 @@ const QUICK_PRESETS = {
   'emom-15': { sets: 1, reps: 15, work: 60, rest: 0, warmup: 0 },
   'emom-20': { sets: 1, reps: 20, work: 60, rest: 0, warmup: 0 },
   'emom-25': { sets: 1, reps: 25, work: 60, rest: 0, warmup: 0 },
-  'emom-30': { sets: 1, reps: 30, work: 60, rest: 0, warmup: 0 },
   'hiit-30-30': { sets: 1, reps: 10, work: 30, rest: 30, warmup: 0 },
   'hiit-40-20': { sets: 1, reps: 10, work: 40, rest: 20, warmup: 0 },
   'hiit-45-15': { sets: 1, reps: 10, work: 45, rest: 15, warmup: 0 },
   'hiit-50-10': { sets: 1, reps: 10, work: 50, rest: 10, warmup: 0 },
-  'tabata-1': { sets: 1, reps: 8, work: 20, rest: 10, warmup: 0 },
   'tabata-2': { sets: 2, reps: 8, work: 20, rest: 10, warmup: 0 },
-  'tabata-3': { sets: 3, reps: 8, work: 20, rest: 10, warmup: 0 },
   'tabata-4': { sets: 4, reps: 8, work: 20, rest: 10, warmup: 0 },
-  'tabata-5': { sets: 5, reps: 8, work: 20, rest: 10, warmup: 0 },
+  'tabata-6': { sets: 6, reps: 8, work: 20, rest: 10, warmup: 0 },
   'tabata-8': { sets: 8, reps: 8, work: 20, rest: 10, warmup: 0 },
 };
 
