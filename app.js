@@ -244,7 +244,7 @@ function buildHiitPhases(cfg) {
 function buildAmrapPhases(cfg) {
   const phases = [];
   if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
-  phases.push({ type: 'amrap', label: 'AMRAP', duration: cfg.duration });
+  phases.push({ type: 'amrap', label: 'AMRAP', duration: cfg.duration, workout: cfg.workout });
   return phases;
 }
 
@@ -278,6 +278,7 @@ function buildForTimePhases(cfg) {
     duration: cfg.capped ? cfg.cap : Infinity,
     countUp: true,
     capped: cfg.capped,
+    workout: cfg.workout,
   });
   return phases;
 }
@@ -497,7 +498,24 @@ function renderPhaseChrome() {
     : phase.type === 'warmup' ? 'ÎNCĂLZIRE'
     : phase.type === 'amrap' ? 'AMRAP'
     : (phase.capped ? 'FOR TIME' : 'CRONOMETRU');
-  $('timerTitle').textContent = phase.label;
+
+  const workoutList = $('workoutList');
+  if (phase.workout && phase.workout.length) {
+    $('timerTitle').hidden = true;
+    workoutList.hidden = false;
+    workoutList.classList.toggle('two-col', phase.workout.length > 4);
+    workoutList.innerHTML = '';
+    phase.workout.forEach((line) => {
+      const item = document.createElement('div');
+      item.className = 'workout-item';
+      item.textContent = line;
+      workoutList.appendChild(item);
+    });
+  } else {
+    $('timerTitle').hidden = false;
+    $('timerTitle').textContent = phase.label;
+    workoutList.hidden = true;
+  }
 
   const isListMode = session.mode === 'hiit' || session.mode === 'custom';
 
@@ -590,6 +608,11 @@ function parseNames(raw) {
   return raw.split('\n').map((s) => s.trim()).filter(Boolean);
 }
 
+const WORKOUT_MAX_LINES = 8;
+function parseWorkoutLines(raw) {
+  return raw.split('\n').map((s) => s.trim()).filter(Boolean).slice(0, WORKOUT_MAX_LINES);
+}
+
 function readHiitConfig() {
   return {
     sets: Math.max(1, parseInt($('hiitSets').value, 10) || 1),
@@ -604,14 +627,14 @@ function readHiitConfig() {
 function readAmrapConfig() {
   const min = Math.max(0, parseInt($('amrapMin').value, 10) || 0);
   const sec = Math.max(0, parseInt($('amrapSec').value, 10) || 0);
-  return { duration: Math.max(1, min * 60 + sec) };
+  return { duration: Math.max(1, min * 60 + sec), workout: parseWorkoutLines($('amrapWorkout').value) };
 }
 
 function readForTimeConfig() {
   const capped = $('ftTimeCap').checked;
   const min = Math.max(0, parseInt($('ftCapMin').value, 10) || 0);
   const sec = Math.max(0, parseInt($('ftCapSec').value, 10) || 0);
-  return { capped, cap: Math.max(1, min * 60 + sec) };
+  return { capped, cap: Math.max(1, min * 60 + sec), workout: parseWorkoutLines($('ftWorkout').value) };
 }
 
 function readCustomConfig() {
@@ -653,6 +676,18 @@ function launch(mode) {
 }
 
 /* ---------- UI wiring ---------- */
+function enforceMaxLines(textarea, max) {
+  textarea.addEventListener('input', () => {
+    const lines = textarea.value.split('\n');
+    if (lines.length > max) textarea.value = lines.slice(0, max).join('\n');
+  });
+}
+
+function initWorkoutLimits() {
+  enforceMaxLines($('amrapWorkout'), WORKOUT_MAX_LINES);
+  enforceMaxLines($('ftWorkout'), WORKOUT_MAX_LINES);
+}
+
 function initTabs() {
   const tabs = document.querySelectorAll('.tab-btn');
   const panels = document.querySelectorAll('.panel');
@@ -904,6 +939,7 @@ function restoreConfigs() {
     const totalSec = Math.max(0, saved.amrap.duration || 0);
     $('amrapMin').value = String(Math.floor(totalSec / 60));
     $('amrapSec').value = String(totalSec % 60);
+    if (saved.amrap.workout) $('amrapWorkout').value = saved.amrap.workout.join('\n');
     ['amrapMin', 'amrapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
   }
 
@@ -913,6 +949,7 @@ function restoreConfigs() {
     const capSec = Math.max(0, saved.fortime.cap || 0);
     $('ftCapMin').value = String(Math.floor(capSec / 60));
     $('ftCapSec').value = String(capSec % 60);
+    if (saved.fortime.workout) $('ftWorkout').value = saved.fortime.workout.join('\n');
     ['ftCapMin', 'ftCapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
   }
 
@@ -928,6 +965,7 @@ function init() {
   initTheme();
   initTabs();
   initEmomToggle();
+  initWorkoutLimits();
   initCustomList();
   initSteppers();
   restoreConfigs();

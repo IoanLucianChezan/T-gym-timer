@@ -149,6 +149,12 @@
               </div>
             </div>
 
+            <div class="field">
+              <label for="amrapWorkout">Workout (opțional)</label>
+              <textarea id="amrapWorkout" rows="4" maxlength="240" placeholder="Un exercițiu pe linie, ex:&#10;10 Pull-ups&#10;15 Push-ups&#10;20 Air Squats"></textarea>
+              <p class="field-hint">Apare pe cronometru cât timp rulează. Maxim 8 linii, scurte, ca să încapă pe ecran (ex. „20 Burpees”).</p>
+            </div>
+
             <div class="field toggle-field">
               <label for="amrapRadio">
                 <input type="checkbox" id="amrapRadio" />
@@ -199,6 +205,12 @@
                   <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
                 </div>
               </div>
+            </div>
+
+            <div class="field">
+              <label for="ftWorkout">Workout (opțional)</label>
+              <textarea id="ftWorkout" rows="4" maxlength="240" placeholder="Un exercițiu pe linie, ex:&#10;21 Thrusters&#10;21 Pull-ups&#10;400m Run"></textarea>
+              <p class="field-hint">Apare pe cronometru cât timp rulează. Maxim 8 linii, scurte, ca să încapă pe ecran (ex. „20 Burpees”).</p>
             </div>
 
             <div class="field toggle-field">
@@ -276,6 +288,7 @@
       </div>
 
       <h3 class="timer-title" id="timerTitle">—</h3>
+      <div class="workout-list" id="workoutList" hidden></div>
       <p class="timer-meta" id="timerSet"></p>
       <p class="timer-next" id="timerNext"></p>
 
