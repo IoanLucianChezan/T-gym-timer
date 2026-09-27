@@ -303,6 +303,7 @@ function startSession(mode, phases, meta) {
     meta: meta || {},
     sessionStartTs: Date.now(),
     rounds: 0,
+    roundSplits: [],
   };
   acquireWakeLock();
   showTimerOverlay();
@@ -394,15 +395,35 @@ function skipPhase() {
 function incrementRound() {
   if (!session || session.finished || session.mode !== 'amrap') return;
   session.rounds += 1;
+  const elapsed = phaseElapsedSeconds();
+  const prevSplit = session.roundSplits.length ? session.roundSplits[session.roundSplits.length - 1] : 0;
+  session.roundSplits.push(elapsed);
   $('roundsCount').textContent = String(session.rounds);
   vibrate(25);
+  showRoundLapMessage(session.rounds, elapsed - prevSplit);
 }
 
 function decrementRound() {
   if (!session || session.finished || session.mode !== 'amrap') return;
-  session.rounds = Math.max(0, session.rounds - 1);
+  if (session.rounds > 0) {
+    session.rounds -= 1;
+    session.roundSplits.pop();
+  }
   $('roundsCount').textContent = String(session.rounds);
   vibrate(25);
+}
+
+let roundLapTimeout = null;
+function showRoundLapMessage(roundNum, durationSec) {
+  const ringPhase = $('ringPhase');
+  if (roundLapTimeout) clearTimeout(roundLapTimeout);
+  ringPhase.textContent = `Runda ${roundNum}: ${formatTime(durationSec)}`;
+  ringPhase.classList.add('lap-flash');
+  roundLapTimeout = setTimeout(() => {
+    ringPhase.textContent = 'AMRAP';
+    ringPhase.classList.remove('lap-flash');
+    roundLapTimeout = null;
+  }, 1800);
 }
 
 function abortSession() {
@@ -421,10 +442,12 @@ function finishSession(reason) {
   tickHandle = null;
   releaseWakeLock();
   stopRadio();
+  if (roundLapTimeout) { clearTimeout(roundLapTimeout); roundLapTimeout = null; }
 
   const totalElapsed = (Date.now() - session.sessionStartTs) / 1000;
   const mode = session.mode;
   const meta = session.meta;
+  const roundSplits = session.roundSplits;
 
   hideTimerOverlay();
 
@@ -456,6 +479,28 @@ function finishSession(reason) {
   }
 
   showResult(title, bigTime, detail);
+  renderRoundSplits(mode === 'amrap' ? roundSplits : null);
+}
+
+function renderRoundSplits(splits) {
+  const el = $('roundSplits');
+  el.innerHTML = '';
+  if (!splits || !splits.length) {
+    el.hidden = true;
+    return;
+  }
+  splits.forEach((cum, i) => {
+    const prev = i > 0 ? splits[i - 1] : 0;
+    const row = document.createElement('div');
+    row.className = 'round-split-row';
+    const label = document.createElement('span');
+    label.textContent = `Runda ${i + 1}`;
+    const time = document.createElement('span');
+    time.textContent = formatTime(cum - prev);
+    row.append(label, time);
+    el.appendChild(row);
+  });
+  el.hidden = false;
 }
 
 /* ---------- rendering ---------- */
