@@ -956,8 +956,7 @@ function addIntervalRow(name, duration, rest) {
 
 function populateCustomList(items) {
   $('customList').innerHTML = '';
-  (items && items.length ? items : [{ name: '', duration: 30, rest: false }, { name: '', duration: 30, rest: false }])
-    .forEach((item) => addIntervalRow(item.name, item.duration, item.rest));
+  (items || []).forEach((item) => addIntervalRow(item.name, item.duration, item.rest));
 }
 
 function initCustomList() {
@@ -967,6 +966,7 @@ function initCustomList() {
   ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec'].forEach((id) => {
     $(id).addEventListener('input', updateCustomListState);
   });
+  updateCustomListState();
 }
 
 function initSteppers() {
