@@ -978,12 +978,18 @@ function initCustomList() {
   populateCustomList(null);
   $('addIntervalBtn').addEventListener('click', () => addIntervalRow('', 30, false));
   $('customRounds').addEventListener('input', updateCustomListState);
+  $('customRounds').addEventListener('change', updateCustomListState);
   updateCustomListState();
 }
 
 function initCustomBlock() {
+  // The stepper +/- buttons set .value programmatically and dispatch
+  // 'change' (see initSteppers), not 'input' -- listen for both so the
+  // start button/total update whether the field was typed into directly
+  // or adjusted with +/-.
   ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec'].forEach((id) => {
     $(id).addEventListener('input', updateBlockState);
+    $(id).addEventListener('change', updateBlockState);
   });
   updateBlockState();
 }
