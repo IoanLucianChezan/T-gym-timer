@@ -266,6 +266,27 @@ function buildCustomPhases(cfg) {
       });
     });
   }
+
+  // Optional "Bloc de exercitii": N rounds of continuous work (showing an
+  // AMRAP-style exercise list) + rest, appended after the manual list.
+  const block = cfg.block;
+  if (block && block.rounds > 0 && block.work > 0) {
+    for (let b = 1; b <= block.rounds; b++) {
+      const isLastBlockRound = b === block.rounds;
+      phases.push({
+        type: 'amrap',
+        label: 'AMRAP',
+        duration: block.work,
+        workout: block.workout,
+        set: b,
+        totalSets: block.rounds,
+      });
+      if (block.rest > 0 && !isLastBlockRound) {
+        phases.push({ type: 'rest', label: 'Pauză', duration: block.rest });
+      }
+    }
+  }
+
   return phases;
 }
 
@@ -689,7 +710,28 @@ function readCustomConfig() {
     rest: row.querySelector('.interval-rest').checked,
   }));
   const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
-  return { items, rounds };
+  return { items, rounds, block: readCustomBlockConfig() };
+}
+
+function readCustomBlockConfig() {
+  const rounds = Math.max(0, parseInt($('blockRounds').value, 10) || 0);
+  const workMin = Math.max(0, parseInt($('blockWorkMin').value, 10) || 0);
+  const workSec = Math.max(0, parseInt($('blockWorkSec').value, 10) || 0);
+  const restMin = Math.max(0, parseInt($('blockRestMin').value, 10) || 0);
+  const restSec = Math.max(0, parseInt($('blockRestSec').value, 10) || 0);
+  return {
+    rounds,
+    work: workMin * 60 + workSec,
+    rest: restMin * 60 + restSec,
+    workout: parseWorkoutLines($('blockWorkout').value),
+  };
+}
+
+function customConfigHasContent() {
+  const hasItems = $('customList').querySelectorAll('.interval-row').length > 0;
+  const block = readCustomBlockConfig();
+  const hasBlock = block.rounds > 0 && block.work > 0;
+  return hasItems || hasBlock;
 }
 
 function launch(mode) {
@@ -702,8 +744,8 @@ function launch(mode) {
     saveConfig(mode, cfg);
     startSession('hiit', buildHiitPhases(cfg), cfg);
   } else if (mode === 'custom') {
+    if (!customConfigHasContent()) return;
     const cfg = readCustomConfig();
-    if (!cfg.items.length) return;
     lastConfig = { mode, cfg };
     saveConfig(mode, cfg);
     startSession('custom', buildCustomPhases(cfg), cfg);
@@ -731,6 +773,7 @@ function enforceMaxLines(textarea, max) {
 function initWorkoutLimits() {
   enforceMaxLines($('amrapWorkout'), WORKOUT_MAX_LINES);
   enforceMaxLines($('ftWorkout'), WORKOUT_MAX_LINES);
+  enforceMaxLines($('blockWorkout'), WORKOUT_MAX_LINES);
 }
 
 function initTabs() {
@@ -793,15 +836,21 @@ function formatIntervalTotal() {
   const rows = Array.from($('customList').querySelectorAll('.interval-row'));
   const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
   const sum = rows.reduce((acc, row) => acc + (Math.max(0, parseInt(row.querySelector('.interval-duration').value, 10) || 0)), 0);
-  const total = sum * rounds + (settings.prep > 0 ? settings.prep : 0);
+  const block = readCustomBlockConfig();
+  let blockTotal = 0;
+  if (block.rounds > 0 && block.work > 0) {
+    blockTotal = block.rounds * block.work + Math.max(0, block.rounds - 1) * block.rest;
+  }
+  const total = sum * rounds + blockTotal + (settings.prep > 0 ? settings.prep : 0);
   return formatTime(total);
 }
 
 function updateCustomListState() {
   const rows = Array.from($('customList').querySelectorAll('.interval-row'));
-  $('customEmptyWarning').hidden = rows.length > 0;
+  const hasContent = customConfigHasContent();
+  $('customEmptyWarning').hidden = hasContent;
   const startBtn = document.querySelector('[data-start="custom"]');
-  if (startBtn) startBtn.disabled = rows.length === 0;
+  if (startBtn) startBtn.disabled = !hasContent;
   rows.forEach((row, i) => {
     row.querySelector('.interval-move[data-dir="-1"]').disabled = i === 0;
     row.querySelector('.interval-move[data-dir="1"]').disabled = i === rows.length - 1;
@@ -915,6 +964,9 @@ function initCustomList() {
   populateCustomList(null);
   $('addIntervalBtn').addEventListener('click', () => addIntervalRow('', 30, false));
   $('customRounds').addEventListener('input', updateCustomListState);
+  ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec'].forEach((id) => {
+    $(id).addEventListener('input', updateCustomListState);
+  });
 }
 
 function initSteppers() {
@@ -1015,10 +1067,23 @@ function restoreConfigs() {
     ['ftCapMin', 'ftCapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
   }
 
-  if (saved.custom && saved.custom.items && saved.custom.items.length) {
-    populateCustomList(saved.custom.items);
-    $('customRounds').value = String(saved.custom.rounds || 1);
-    $('customRounds').dispatchEvent(new Event('change', { bubbles: true }));
+  if (saved.custom) {
+    if (saved.custom.items && saved.custom.items.length) {
+      populateCustomList(saved.custom.items);
+      $('customRounds').value = String(saved.custom.rounds || 1);
+      $('customRounds').dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    const block = saved.custom.block;
+    if (block) {
+      $('blockRounds').value = String(block.rounds || 0);
+      $('blockWorkMin').value = String(Math.floor((block.work || 0) / 60));
+      $('blockWorkSec').value = String((block.work || 0) % 60);
+      $('blockRestMin').value = String(Math.floor((block.rest || 0) / 60));
+      $('blockRestSec').value = String((block.rest || 0) % 60);
+      if (block.workout) $('blockWorkout').value = block.workout.join('\n');
+      ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec']
+        .forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+    }
     updateCustomListState();
   }
 }

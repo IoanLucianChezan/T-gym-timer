@@ -495,6 +495,34 @@ textarea { resize: vertical; }
   color: var(--text-muted);
 }
 
+/* "Bloc de exerciții": a distinct, double-framed box (outer border +
+   inner blue separator under the title) so it reads as a separate
+   alternative to the manual interval list above it, not more of the
+   same fields. */
+.custom-block {
+  margin-top: 24px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.custom-block-title {
+  margin: 0;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-bottom: 2px solid var(--accent);
+}
+
+.custom-block-body {
+  padding: 16px;
+}
+.custom-block-body .field:last-child,
+.custom-block-body .field-row:last-child { margin-bottom: 0; }
+
 .interval-empty-warning {
   margin: 0 0 14px;
   padding: 10px 12px;
