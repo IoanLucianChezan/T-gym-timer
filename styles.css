@@ -495,33 +495,24 @@ textarea { resize: vertical; }
   color: var(--text-muted);
 }
 
-/* "Bloc de exerciții": a distinct, double-framed box (outer border +
-   inner blue separator under the title) so it reads as a separate
-   alternative to the manual interval list above it, not more of the
-   same fields. */
-.custom-block {
-  margin-top: 24px;
+/* Custom Interval: single-block (manual list) and multi-block (rounds +
+   exercise block) are two fully independent ways to start a session, each
+   in its own distinct frame with its own start button, rather than one
+   combined config -- combining them silently ran both, one after the
+   other, which was confusing when only one was actually configured. */
+.custom-section {
   border: 2px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  padding: 18px;
+  margin-bottom: 20px;
   background: var(--surface);
 }
+.custom-section:last-child { margin-bottom: 0; }
+.custom-section .config-details { margin-bottom: 16px; }
+.custom-section .start-btn { margin: 0; }
 
-.custom-block-title {
-  margin: 0;
-  padding: 10px 16px;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-bottom: 2px solid var(--accent);
-}
-
-.custom-block-body {
-  padding: 16px;
-}
-.custom-block-body .field:last-child,
-.custom-block-body .field-row:last-child { margin-bottom: 0; }
+.custom-section-single { border-color: var(--border); }
+.custom-section-multi { border-color: var(--accent); }
 
 .interval-empty-warning {
   margin: 0 0 14px;

@@ -106,7 +106,7 @@ function initTheme() {
 
 /* ---------- background radio (Antenne Workout Hits) ---------- */
 const RADIO_STREAM_URL = 'https://mp3channels.webradio.antenne.de/workout-hits';
-const RADIO_CHECKBOX_ID = { hiit: 'hiitRadio', amrap: 'amrapRadio', fortime: 'ftRadio', custom: 'customRadio' };
+const RADIO_CHECKBOX_ID = { hiit: 'hiitRadio', amrap: 'amrapRadio', fortime: 'ftRadio', custom: 'customRadio', customblock: 'blockRadio' };
 let radioAudio = null;
 
 function startRadio() {
@@ -266,27 +266,29 @@ function buildCustomPhases(cfg) {
       });
     });
   }
+  return phases;
+}
 
-  // Optional "Bloc de exercitii": N rounds of continuous work (showing an
-  // AMRAP-style exercise list) + rest, appended after the manual list.
-  const block = cfg.block;
-  if (block && block.rounds > 0 && block.work > 0) {
-    for (let b = 1; b <= block.rounds; b++) {
-      const isLastBlockRound = b === block.rounds;
-      phases.push({
-        type: 'amrap',
-        label: 'AMRAP',
-        duration: block.work,
-        workout: block.workout,
-        set: b,
-        totalSets: block.rounds,
-      });
-      if (block.rest > 0 && !isLastBlockRound) {
-        phases.push({ type: 'rest', label: 'Pauză', duration: block.rest });
-      }
+// "Multi-block": N rounds of continuous work (AMRAP-style exercise list
+// shown throughout) + rest -- a fully separate session type from the
+// manual single-block list, with its own start button.
+function buildCustomBlockPhases(block) {
+  const phases = [];
+  if (settings.prep > 0) phases.push({ type: 'prep', label: 'Pregătire', duration: settings.prep });
+  for (let b = 1; b <= block.rounds; b++) {
+    const isLastRound = b === block.rounds;
+    phases.push({
+      type: 'amrap',
+      label: 'AMRAP',
+      duration: block.work,
+      workout: block.workout,
+      set: b,
+      totalSets: block.rounds,
+    });
+    if (block.rest > 0 && !isLastRound) {
+      phases.push({ type: 'rest', label: 'Pauză', duration: block.rest });
     }
   }
-
   return phases;
 }
 
@@ -486,6 +488,8 @@ function finishSession(reason) {
     detail = meta.rounds > 1
       ? `${meta.items.length} intervale × ${meta.rounds} runde`
       : `${meta.items.length} intervale · circuit personalizat`;
+  } else if (mode === 'customblock') {
+    detail = `${meta.rounds} runde · ${formatTime(meta.work)} lucru / ${formatTime(meta.rest)} pauză`;
   } else if (mode === 'amrap') {
     bigTime = `${session.rounds} runde`;
     detail = `Timp alocat: ${formatTime(meta.duration)}`;
@@ -583,7 +587,7 @@ function renderPhaseChrome() {
     workoutList.hidden = true;
   }
 
-  const isListMode = session.mode === 'hiit' || session.mode === 'custom';
+  const isListMode = session.mode === 'hiit' || session.mode === 'custom' || session.mode === 'customblock';
 
   if (isListMode && phase.set) {
     $('timerSet').textContent = phase.totalReps > 1
@@ -710,7 +714,7 @@ function readCustomConfig() {
     rest: row.querySelector('.interval-rest').checked,
   }));
   const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
-  return { items, rounds, block: readCustomBlockConfig() };
+  return { items, rounds };
 }
 
 function readCustomBlockConfig() {
@@ -727,13 +731,6 @@ function readCustomBlockConfig() {
   };
 }
 
-function customConfigHasContent() {
-  const hasItems = $('customList').querySelectorAll('.interval-row').length > 0;
-  const block = readCustomBlockConfig();
-  const hasBlock = block.rounds > 0 && block.work > 0;
-  return hasItems || hasBlock;
-}
-
 function launch(mode) {
   const radioCheckbox = $(RADIO_CHECKBOX_ID[mode]);
   if (radioCheckbox && radioCheckbox.checked) startRadio(); else stopRadio();
@@ -744,11 +741,17 @@ function launch(mode) {
     saveConfig(mode, cfg);
     startSession('hiit', buildHiitPhases(cfg), cfg);
   } else if (mode === 'custom') {
-    if (!customConfigHasContent()) return;
     const cfg = readCustomConfig();
+    if (!cfg.items.length) return;
     lastConfig = { mode, cfg };
     saveConfig(mode, cfg);
     startSession('custom', buildCustomPhases(cfg), cfg);
+  } else if (mode === 'customblock') {
+    const block = readCustomBlockConfig();
+    if (!(block.rounds > 0 && block.work > 0)) return;
+    lastConfig = { mode, cfg: block };
+    saveConfig(mode, block);
+    startSession('customblock', buildCustomBlockPhases(block), block);
   } else if (mode === 'amrap') {
     const cfg = readAmrapConfig();
     lastConfig = { mode, cfg };
@@ -836,26 +839,38 @@ function formatIntervalTotal() {
   const rows = Array.from($('customList').querySelectorAll('.interval-row'));
   const rounds = Math.max(1, parseInt($('customRounds').value, 10) || 1);
   const sum = rows.reduce((acc, row) => acc + (Math.max(0, parseInt(row.querySelector('.interval-duration').value, 10) || 0)), 0);
-  const block = readCustomBlockConfig();
-  let blockTotal = 0;
-  if (block.rounds > 0 && block.work > 0) {
-    blockTotal = block.rounds * block.work + Math.max(0, block.rounds - 1) * block.rest;
-  }
-  const total = sum * rounds + blockTotal + (settings.prep > 0 ? settings.prep : 0);
+  const total = sum * rounds + (settings.prep > 0 ? settings.prep : 0);
   return formatTime(total);
 }
 
 function updateCustomListState() {
   const rows = Array.from($('customList').querySelectorAll('.interval-row'));
-  const hasContent = customConfigHasContent();
-  $('customEmptyWarning').hidden = hasContent;
+  $('customEmptyWarning').hidden = rows.length > 0;
   const startBtn = document.querySelector('[data-start="custom"]');
-  if (startBtn) startBtn.disabled = !hasContent;
+  if (startBtn) startBtn.disabled = rows.length === 0;
   rows.forEach((row, i) => {
     row.querySelector('.interval-move[data-dir="-1"]').disabled = i === 0;
     row.querySelector('.interval-move[data-dir="1"]').disabled = i === rows.length - 1;
   });
   $('customTotal').textContent = `Timp total: ≈ ${formatIntervalTotal()}`;
+}
+
+function formatBlockTotal() {
+  const block = readCustomBlockConfig();
+  let total = 0;
+  if (block.rounds > 0 && block.work > 0) {
+    total = block.rounds * block.work + Math.max(0, block.rounds - 1) * block.rest;
+    total += settings.prep > 0 ? settings.prep : 0;
+  }
+  return formatTime(total);
+}
+
+function updateBlockState() {
+  const block = readCustomBlockConfig();
+  const valid = block.rounds > 0 && block.work > 0;
+  const startBtn = $('blockStartBtn');
+  if (startBtn) startBtn.disabled = !valid;
+  $('blockTotal').textContent = `Timp total: ≈ ${formatBlockTotal()}`;
 }
 
 function addIntervalRow(name, duration, rest) {
@@ -963,10 +978,14 @@ function initCustomList() {
   populateCustomList(null);
   $('addIntervalBtn').addEventListener('click', () => addIntervalRow('', 30, false));
   $('customRounds').addEventListener('input', updateCustomListState);
-  ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec'].forEach((id) => {
-    $(id).addEventListener('input', updateCustomListState);
-  });
   updateCustomListState();
+}
+
+function initCustomBlock() {
+  ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec'].forEach((id) => {
+    $(id).addEventListener('input', updateBlockState);
+  });
+  updateBlockState();
 }
 
 function initSteppers() {
@@ -1067,24 +1086,24 @@ function restoreConfigs() {
     ['ftCapMin', 'ftCapSec'].forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
   }
 
-  if (saved.custom) {
-    if (saved.custom.items && saved.custom.items.length) {
-      populateCustomList(saved.custom.items);
-      $('customRounds').value = String(saved.custom.rounds || 1);
-      $('customRounds').dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    const block = saved.custom.block;
-    if (block) {
-      $('blockRounds').value = String(block.rounds || 0);
-      $('blockWorkMin').value = String(Math.floor((block.work || 0) / 60));
-      $('blockWorkSec').value = String((block.work || 0) % 60);
-      $('blockRestMin').value = String(Math.floor((block.rest || 0) / 60));
-      $('blockRestSec').value = String((block.rest || 0) % 60);
-      if (block.workout) $('blockWorkout').value = block.workout.join('\n');
-      ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec']
-        .forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
-    }
+  if (saved.custom && saved.custom.items && saved.custom.items.length) {
+    populateCustomList(saved.custom.items);
+    $('customRounds').value = String(saved.custom.rounds || 1);
+    $('customRounds').dispatchEvent(new Event('change', { bubbles: true }));
     updateCustomListState();
+  }
+
+  if (saved.customblock) {
+    const block = saved.customblock;
+    $('blockRounds').value = String(block.rounds || 0);
+    $('blockWorkMin').value = String(Math.floor((block.work || 0) / 60));
+    $('blockWorkSec').value = String((block.work || 0) % 60);
+    $('blockRestMin').value = String(Math.floor((block.rest || 0) / 60));
+    $('blockRestSec').value = String((block.rest || 0) % 60);
+    if (block.workout) $('blockWorkout').value = block.workout.join('\n');
+    ['blockRounds', 'blockWorkMin', 'blockWorkSec', 'blockRestMin', 'blockRestSec']
+      .forEach((id) => $(id).dispatchEvent(new Event('change', { bubbles: true })));
+    updateBlockState();
   }
 }
 
@@ -1094,6 +1113,7 @@ function init() {
   initQuickSetup();
   initWorkoutLimits();
   initCustomList();
+  initCustomBlock();
   initSteppers();
   restoreConfigs();
   initTimerControls();

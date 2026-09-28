@@ -254,46 +254,61 @@
         </button>
       </section>
 
-      <!-- Custom Interval: list of intervals, each with its own duration -->
+      <!-- Custom Interval: two independent, self-contained ways to build a session -->
       <section class="panel card" id="panel-custom" role="tabpanel" hidden>
         <h2>Custom Interval</h2>
-        <p class="hint">Intervale custom pe listă — fiecare interval cu timpul lui propriu, nu doar uniform. Util pentru circuite unde exercițiile au durate diferite.</p>
+        <p class="hint">Două moduri independente de a-ți construi antrenamentul, fiecare cu butonul lui de pornire.</p>
 
-        <details class="config-details">
-          <summary class="config-summary">Configurare</summary>
-          <div class="config-fields">
+        <!-- Single-block: a manual list of individually-timed intervals -->
+        <div class="custom-section custom-section-single">
+          <details class="config-details">
+            <summary class="config-summary">Configurare single-block</summary>
+            <div class="config-fields">
 
-            <div class="field">
-              <label for="customRounds">Runde</label>
-              <div class="stepper" data-step="1">
-                <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
-                <input type="number" id="customRounds" min="1" max="20" value="1" inputmode="numeric" />
-                <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+              <p class="hint">Intervale pe listă — fiecare interval cu timpul lui propriu, nu doar uniform. Util pentru circuite unde exercițiile au durate diferite.</p>
+
+              <div class="field">
+                <label for="customRounds">Runde</label>
+                <div class="stepper" data-step="1">
+                  <button type="button" class="stepper-btn" data-dir="-1" aria-label="Micșorează">−</button>
+                  <input type="number" id="customRounds" min="1" max="20" value="1" inputmode="numeric" />
+                  <button type="button" class="stepper-btn" data-dir="1" aria-label="Mărește">+</button>
+                </div>
+                <p class="field-hint">De câte ori se repetă toată lista de intervale.</p>
               </div>
-              <p class="field-hint">De câte ori se repetă toată lista de intervale.</p>
+
+              <div class="interval-list" id="customList"></div>
+
+              <p class="interval-empty-warning" id="customEmptyWarning" hidden>⚠️ Adaugă cel puțin un interval ca să poți porni.</p>
+
+              <button type="button" class="add-interval-btn" id="addIntervalBtn">
+                <span aria-hidden="true">+</span> Adaugă interval
+              </button>
+
+              <p class="interval-total" id="customTotal">Timp total: ≈ 00:00</p>
+
+              <div class="field toggle-field">
+                <label for="customRadio">
+                  <input type="checkbox" id="customRadio" />
+                  📻 Pornește radio online în timpul cronometrului
+                </label>
+                <p class="field-hint">(Antenne Workout Hits)</p>
+              </div>
+
             </div>
+          </details>
 
-            <div class="interval-list" id="customList"></div>
+          <button class="start-btn" data-start="custom" type="button">
+            <span aria-hidden="true">▶</span> Începe timer
+          </button>
+        </div>
 
-            <p class="interval-empty-warning" id="customEmptyWarning" hidden>⚠️ Adaugă cel puțin un interval sau configurează blocul de exerciții mai jos ca să poți porni.</p>
+        <!-- Multi-block: N rounds of continuous work (AMRAP-style exercise list) + rest -->
+        <div class="custom-section custom-section-multi">
+          <details class="config-details">
+            <summary class="config-summary">Configurare multi-block</summary>
+            <div class="config-fields">
 
-            <button type="button" class="add-interval-btn" id="addIntervalBtn">
-              <span aria-hidden="true">+</span> Adaugă interval
-            </button>
-
-            <p class="interval-total" id="customTotal">Timp total: ≈ 00:00</p>
-
-            <div class="field toggle-field">
-              <label for="customRadio">
-                <input type="checkbox" id="customRadio" />
-                📻 Pornește radio online în timpul cronometrului
-              </label>
-              <p class="field-hint">(Antenne Workout Hits)</p>
-            </div>
-
-            <div class="custom-block">
-              <h3 class="custom-block-title">Bloc de exerciții (opțional)</h3>
-              <div class="custom-block-body">
               <p class="hint">Runde cu lucru continuu + pauză, unde faci cât mai multe ture dintr-o listă de exerciții (ex: 5 runde × 6 min lucru / 1 min pauză).</p>
 
               <div class="field-row">
@@ -351,15 +366,24 @@
                 <textarea id="blockWorkout" rows="4" maxlength="240" placeholder="Un exercițiu pe linie, ex:&#10;10 KB swing&#10;6 Goblet Squat&#10;5 KB clean"></textarea>
                 <p class="field-hint">Apare pe cronometru în timpul lucrului. Maxim 8 linii, scurte, ca să încapă pe ecran.</p>
               </div>
+
+              <p class="interval-total" id="blockTotal">Timp total: ≈ 00:00</p>
+
+              <div class="field toggle-field">
+                <label for="blockRadio">
+                  <input type="checkbox" id="blockRadio" />
+                  📻 Pornește radio online în timpul cronometrului
+                </label>
+                <p class="field-hint">(Antenne Workout Hits)</p>
               </div>
+
             </div>
+          </details>
 
-          </div>
-        </details>
-
-        <button class="start-btn" data-start="custom" type="button">
-          <span aria-hidden="true">▶</span> Începe timer
-        </button>
+          <button class="start-btn" data-start="customblock" type="button" id="blockStartBtn">
+            <span aria-hidden="true">▶</span> Începe timer
+          </button>
+        </div>
       </section>
 
     </main>
