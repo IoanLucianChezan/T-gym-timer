@@ -496,23 +496,18 @@ textarea { resize: vertical; }
 }
 
 /* Custom Interval: single-block (manual list) and multi-block (rounds +
-   exercise block) are two fully independent ways to start a session, each
-   in its own distinct frame with its own start button, rather than one
-   combined config -- combining them silently ran both, one after the
-   other, which was confusing when only one was actually configured. */
+   exercise block) are two fully independent ways to start a session,
+   each with its own start button rather than one combined config --
+   combining them silently ran both, one after the other, which was
+   confusing when only one was actually configured. No frame around
+   either one (removed on request, to give the fields/text more room,
+   especially on mobile) -- just spacing between the two. */
 .custom-section {
-  border: 2px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  margin-bottom: 20px;
-  background: var(--surface);
+  margin-bottom: 28px;
 }
 .custom-section:last-child { margin-bottom: 0; }
 .custom-section .config-details { margin-bottom: 16px; }
 .custom-section .start-btn { margin: 0; }
-
-.custom-section-single { border-color: var(--border); }
-.custom-section-multi { border-color: var(--accent); }
 
 .interval-empty-warning {
   margin: 0 0 14px;
