@@ -415,6 +415,11 @@ function skipPhase() {
   advancePhase();
 }
 
+function bumpRoundsCount() {
+  if (!window.gsap) return;
+  gsap.fromTo('#roundsCount', { scale: 1.3 }, { scale: 1, duration: 0.3, ease: 'back.out(3)' });
+}
+
 function incrementRound() {
   if (!session || session.finished || session.mode !== 'amrap') return;
   session.rounds += 1;
@@ -422,6 +427,7 @@ function incrementRound() {
   const prevSplit = session.roundSplits.length ? session.roundSplits[session.roundSplits.length - 1] : 0;
   session.roundSplits.push(elapsed);
   $('roundsCount').textContent = String(session.rounds);
+  bumpRoundsCount();
   vibrate(25);
   showRoundLapMessage(session.rounds, elapsed - prevSplit);
 }
@@ -433,6 +439,7 @@ function decrementRound() {
     session.roundSplits.pop();
   }
   $('roundsCount').textContent = String(session.rounds);
+  bumpRoundsCount();
   vibrate(25);
 }
 
@@ -455,6 +462,7 @@ function abortSession() {
   session = null;
   releaseWakeLock();
   stopRadio();
+  setUrgentPulse(false);
   hideTimerOverlay();
 }
 
@@ -465,6 +473,7 @@ function finishSession(reason) {
   tickHandle = null;
   releaseWakeLock();
   stopRadio();
+  setUrgentPulse(false);
   if (roundLapTimeout) { clearTimeout(roundLapTimeout); roundLapTimeout = null; }
 
   const totalElapsed = (Date.now() - session.sessionStartTs) / 1000;
@@ -526,6 +535,11 @@ function renderRoundSplits(splits) {
     el.appendChild(row);
   });
   el.hidden = false;
+  if (window.gsap) {
+    gsap.fromTo(el.querySelectorAll('.round-split-row'),
+      { opacity: 0, x: -8 },
+      { opacity: 1, x: 0, duration: 0.25, stagger: 0.04, ease: 'power2.out' });
+  }
 }
 
 /* ---------- rendering ---------- */
@@ -542,6 +556,23 @@ function updateRingCountDown(remaining, phase) {
   const urgent = remaining <= 3 && remaining > 0 && (phase.type === 'work' || phase.type === 'amrap');
   setRingClass(phase.type, urgent);
   applyPhaseColor(phase, frac);
+  setUrgentPulse(urgent);
+}
+
+// A repeating scale pulse on the big countdown digits for the last 3
+// seconds of a work/amrap phase, on top of the existing red text cue.
+// Idempotent (checked against urgentPulseTween) so it's cheap to call
+// every 200ms tick without restarting the animation each time.
+let urgentPulseTween = null;
+function setUrgentPulse(active) {
+  if (!window.gsap) return;
+  if (active && !urgentPulseTween) {
+    urgentPulseTween = gsap.to('#ringTime', { scale: 1.08, duration: 0.4, yoyo: true, repeat: -1, ease: 'power1.inOut' });
+  } else if (!active && urgentPulseTween) {
+    urgentPulseTween.kill();
+    gsap.set('#ringTime', { scale: 1 });
+    urgentPulseTween = null;
+  }
 }
 
 function updateRingCountUp(elapsed, phase) {
@@ -569,6 +600,16 @@ function renderPhaseChrome() {
     : phase.type === 'amrap' ? 'AMRAP'
     : (phase.capped ? 'FOR TIME' : 'CRONOMETRU');
 
+  // Phase-change flourish: a quick label fade-in + a subtle ring-wrap
+  // bounce so switching phases (Lucru<->Pauza etc.) reads as a distinct
+  // moment. Deliberately doesn't touch the ring arc's own instant reset
+  // in resetRingInstantly() -- that stays untouched to avoid the
+  // stroke-sweep jump it was built to fix.
+  if (window.gsap) {
+    gsap.fromTo('#ringPhase', { opacity: 0, y: -4 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power2.out' });
+    gsap.fromTo('.ring-wrap', { scale: 0.94 }, { scale: 1, duration: 0.4, ease: 'back.out(2.5)' });
+  }
+
   const workoutList = $('workoutList');
   if (phase.workout && phase.workout.length) {
     $('timerTitle').hidden = true;
@@ -581,6 +622,11 @@ function renderPhaseChrome() {
       item.textContent = line;
       workoutList.appendChild(item);
     });
+    if (window.gsap) {
+      gsap.fromTo(workoutList.querySelectorAll('.workout-item'),
+        { opacity: 0, y: 8 },
+        { opacity: 1, y: 0, duration: 0.3, stagger: 0.06, ease: 'power2.out' });
+    }
   } else {
     $('timerTitle').hidden = false;
     $('timerTitle').textContent = phase.label;
@@ -617,6 +663,7 @@ function renderPhaseChrome() {
 // animating through the previous phase's end state (would otherwise show
 // a visible sweep/jump as one phase's ring hands off to the next).
 function resetRingInstantly(phase) {
+  setUrgentPulse(false);
   const ringFg = $('ringFg');
   ringFg.style.transition = 'none';
   ringFg.style.strokeDashoffset = String(RING_C);
@@ -670,6 +717,12 @@ function showResult(title, time, detail) {
   $('resultDetail').textContent = detail;
   $('resultOverlay').hidden = false;
   launchConfetti();
+  if (window.gsap) {
+    gsap.fromTo('.result-card', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.7)' });
+    gsap.fromTo('.result-card > *:not([hidden])',
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.35, stagger: 0.08, delay: 0.12, ease: 'power2.out' });
+  }
 }
 function hideResult() { $('resultOverlay').hidden = true; clearConfetti(); }
 
@@ -795,7 +848,10 @@ function initTabs() {
   });
 
   document.querySelectorAll('[data-start]').forEach((btn) => {
-    btn.addEventListener('click', () => launch(btn.dataset.start));
+    btn.addEventListener('click', () => {
+      if (window.gsap) gsap.fromTo(btn, { scale: 1 }, { scale: 0.92, duration: 0.1, yoyo: true, repeat: 1, ease: 'power1.inOut' });
+      launch(btn.dataset.start);
+    });
   });
 
   $('ftTimeCap').addEventListener('change', (e) => {
@@ -1113,6 +1169,57 @@ function restoreConfigs() {
   }
 }
 
+// Smooth GSAP-animated open/close for every <details class="config-details">
+// accordion, in place of the native instant show/hide. Falls back to plain
+// native <details> behaviour if GSAP isn't loaded (CDN failure etc.).
+function initConfigAccordions() {
+  if (!window.gsap) return;
+  document.querySelectorAll('.config-details').forEach((details) => {
+    const summary = details.querySelector('.config-summary');
+    const fields = details.querySelector('.config-fields');
+    if (!summary || !fields) return;
+    let animating = false;
+
+    summary.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (animating) return;
+      animating = true;
+
+      if (!details.open) {
+        details.open = true;
+        const targetHeight = fields.scrollHeight;
+        gsap.fromTo(fields,
+          { height: 0, overflow: 'hidden' },
+          {
+            height: targetHeight,
+            duration: 0.32,
+            ease: 'power2.out',
+            onComplete: () => {
+              fields.style.height = 'auto';
+              fields.style.overflow = '';
+              animating = false;
+            },
+          });
+      } else {
+        const startHeight = fields.scrollHeight;
+        gsap.fromTo(fields,
+          { height: startHeight, overflow: 'hidden' },
+          {
+            height: 0,
+            duration: 0.28,
+            ease: 'power2.in',
+            onComplete: () => {
+              details.open = false;
+              fields.style.height = '';
+              fields.style.overflow = '';
+              animating = false;
+            },
+          });
+      }
+    });
+  });
+}
+
 function init() {
   initTheme();
   initTabs();
@@ -1124,6 +1231,7 @@ function init() {
   restoreConfigs();
   initTimerControls();
   initResultControls();
+  initConfigAccordions();
   registerServiceWorker();
 }
 
